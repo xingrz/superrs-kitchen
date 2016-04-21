@@ -1,0 +1,1 @@
+	getprop("ro.product.device") == "#DEVICENAME" || getprop("ro.build.product") == "#DEVICENAME" ||

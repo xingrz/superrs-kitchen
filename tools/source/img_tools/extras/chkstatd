@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while [[ ! $(grep 'Kitchen/\" $romdir' superr) = "" ]]; do
+	if [[ ! $(grep 'Kitchen/\" $romdir' superr | grep "#") = "" ]]; then
+		break
+	fi
+	sleep 5
+done
+killall superr
+exit
