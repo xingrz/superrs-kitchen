@@ -6004,12 +6004,12 @@ kitchen_update() {
 	if [[ $internet = "0" ]]; then
 		banner
 		echo "${bluet}Checking for updates ...$normal"
-		dlurl="https://bitbucket.org/superr/superrs-kitchen/downloads"
-		newzip=$(wget -qO- $dlurl | grep -m 1 Kitchen_v | gawk '{ print $4 }' | cut -d">" -f2 | cut -d"<" -f1)
-		newv=$(echo "$newzip" | sed 's/SuperRs_Kitchen_//; s/\.zip//')
+		dlurl="https://bitbucket.org/superr/superrs-kitchen/downloads/changelog_standard"
+		newinfo=$(wget -qO- $dlurl)
+		newv=$(echo "$newinfo" | head -n 1)
 		upcheck=$(echo "$newv" | sed 's/v//; s/\.//g')
 		currentv=$(echo "$superrv" | cut -d"-" -f1 | cut -d"_" -f1 | sed 's/v//; s/\.//g; s/^0//')
-		if [[ $(echo "$newzip" | grep Kitchen_v) = "" ]]; then
+		if [[ $newinfo = "" ]]; then
 			banner
 			echo "${redb}${yellowt}${bold}ERROR:$normal"
 			echo "${redt}The file server must be down temporarily."
@@ -6042,14 +6042,13 @@ kitchen_update() {
 			elif [[ $choice = "q" ]]; then
 				echo ""
 				echo ""
-				exitk
+				exit
 			# START View changelog
 			elif [[ $choice = "2" ]]; then
 				banner
 				echo "${greenb}Changelog (last 3 versions):$normal"
 				echo ""
-				vchanges=$(wget -qO- https://bitbucket.org/superr/superrs-kitchen/commits/all | grep flex-content--primary | cut -d'"' -f4 | head -n 3 | sed "s/&#39;/\'/g")
-				echo "$yellowt$vchanges$normal"
+				echo "$yellowt$newinfo$normal"
 				echo ""
 				read -p "Press ENTER to return to Kitchen updater"
 				kitchen_update
@@ -6075,40 +6074,11 @@ kitchen_update() {
 					read -p "Press ENTER to return to continue"
 				else
 					banner
-					echo "${bluet}Updating ...$normal"
+					echo "${redb}${yellowt}${bold}ERROR:$normal"
+					echo "${redt}Could not find .git in your kitchen directory."
+					echo "The kitchen must be git cloned.$normal"
 					echo ""
-					mkdir tmpkupdate
-					mv tools tmpkupdate/
-					rm -rf README.md superr
-					(wget $dlurl/$newzip 2>&1) >> tmpkupdate/temp.log
-					if [[ $cyg = "" ]]; then
-						tmpkupdate/tools/7z x -y $newzip 2>&1 >> tmpkupdate/temp.log
-					else
-						$p7z x -y $newzip 2>&1 >> tmpkupdate/temp.log
-					fi
-					if [[ -f tmpkupdate/tools/open_bump.py ]]; then
-						mv tmpkupdate/tools/open_bump.py tools/
-					fi
-					if [[ -s tmpkupdate/tools/root/bloat_custom ]]; then
-						mv tmpkupdate/tools/root/bloat_custom tools/root/
-					fi
-					if [[ -f tmpkupdate/tools/updatecheck-no || -f tmpkupdate/tools/updatecheck-yes ]]; then
-						mv tmpkupdate/tools/updatecheck* tools/
-					fi
-					line=""
-					for line in $(ls tools/devices | sort); do
-						if [[ ! -d tmpkupdate/tools/devices/$line ]]; then
-							mv tools/devices/$line tmpkupdate/tools/devices/
-						fi
-					done
-					rm -rf $newzip 
-					rm -rf tools/devices
-					mv tmpkupdate/tools/devices tools/
-					rm -rf tmpkupdate
-					banner
-					echo "${greent}SuperR's Kitchen has been updated$normal"
-					echo ""
-					read -p "Press ENTER to continue"
+					read -p "Press ENTER to return to main menu"
 				fi
 			fi
 		else
