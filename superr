@@ -5930,7 +5930,7 @@ isfullrom() {
 isinitd() {
 	if [[ -d $romdir/bootimg/ramdisk ]]; then
 		cd $romdir/bootimg/ramdisk
-		if [[ ! $(${usesudo}grep -r "init.d" . | grep -v "lge_fota" | grep -v "chargerlogo") = "" ]]; then
+		if [[ ! $(${usesudo}grep -r "init\.d" . | grep -v "lge_fota" | grep -v "chargerlogo") = "" ]]; then
 			initdstatus="Yes"
 			initdstatus1="${greent}Enabled$normal"
 		else
@@ -6007,6 +6007,7 @@ kitchen_update() {
 		dlurl="https://bitbucket.org/superr/superrs-kitchen/downloads/changelog_standard"
 		newinfo=$(wget -qO- $dlurl)
 		newv=$(echo "$newinfo" | head -n 1)
+		changelog=$(echo "$newinfo" | head -n 8)
 		upcheck=$(echo "$newv" | sed 's/v//; s/\.//g')
 		currentv=$(echo "$superrv" | cut -d"-" -f1 | cut -d"_" -f1 | sed 's/v//; s/\.//g; s/^0//')
 		if [[ $newinfo = "" ]]; then
@@ -6048,7 +6049,7 @@ kitchen_update() {
 				banner
 				echo "${greenb}Changelog (last 3 versions):$normal"
 				echo ""
-				echo "$yellowt$newinfo$normal"
+				echo "$yellowt$changelog$normal"
 				echo ""
 				read -p "Press ENTER to return to Kitchen updater"
 				kitchen_update
