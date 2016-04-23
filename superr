@@ -5930,7 +5930,7 @@ isfullrom() {
 isinitd() {
 	if [[ -d $romdir/bootimg/ramdisk ]]; then
 		cd $romdir/bootimg/ramdisk
-		if [[ ! $(${usesudo}grep -r "init\.d" . | grep -v "lge_fota" | grep -v "chargerlogo") = "" ]]; then
+		if [[ ! $(${usesudo}grep -r "init\.d" . | grep -v "lge_fota\|chargerlogo") = "" ]]; then
 			initdstatus="Yes"
 			initdstatus1="${greent}Enabled$normal"
 		else
@@ -7316,7 +7316,11 @@ if [[ ! -f $tools/depmet ]]; then
 		fi
 	done
 	if [[ -s depinstall ]]; then
-		debpkg="binutils coreutils cpio e2fsprogs findutils gawk gcc grep gzip libc-bin liblz4-tool lzop mount ncurses-bin perl-base sed tar util-linux vim-common wget xz-utils"
+		if [[ $(getconf LONG_BIT) = "64" ]]; then
+			debpkg="binutils libc6-i386 coreutils cpio e2fsprogs findutils gawk gcc grep gzip libc-bin liblz4-tool lzop mount ncurses-bin perl-base sed tar util-linux vim-common wget xz-utils"
+		else
+			debpkg="binutils coreutils cpio e2fsprogs findutils gawk gcc grep gzip libc-bin liblz4-tool lzop mount ncurses-bin perl-base sed tar util-linux vim-common wget xz-utils"
+		fi
 		depinstall=$(cat depinstall)
 		banner
 		echo "${redb}${yellowt}${bold}MISSING DEPENDENCY:$normal"
@@ -7333,7 +7337,7 @@ if [[ ! -f $tools/depmet ]]; then
 		fi
 	fi
 	if [[ $bashwin = "" ]] && [[ $(which java) = "" || $(java -version 2>&1 | grep "java version\|openjdk version" | cut -d'"' -f2 | cut -c 1,3) -lt "17" ]]; then
-		debpkg="openjdk-7-jre"
+		debpkg="default-jre"
 		banner
 		echo "${redb}${yellowt}${bold}MISSING DEPENDENCY:$normal"
 		echo "${redt}You need at least Java 7 to use this kitchen.$normal"
