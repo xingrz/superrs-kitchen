@@ -4937,7 +4937,13 @@ extract_new() {
 			mv $tarmd5 $tarnomd5
 			banner
 			echo "${bluet}Extracting images ...$normal"
-			tar -xf $tarnomd5 system.img boot.img cache.img 2>/dev/null >> $logs/zip.log
+			if [[ ! $(tar -tf $tarnomd5 | grep system.img.ext4) = "" ]]; then
+				tar -xf $tarnomd5 system.img.ext4 boot.img cache.img.ext4 2>/dev/null >> $logs/zip.log
+				mv system.img.ext4 system.img
+				mv cache.img.ext4 cache.img
+			elif [[ ! $(tar -tf $tarnomd5 | grep system.img) = "" ]]; then
+				tar -xf $tarnomd5 system.img boot.img cache.img 2>/dev/null >> $logs/zip.log
+			fi
 			if [[ -f system.img ]]; then
 				rm -rf $tarnomd5
 			else
