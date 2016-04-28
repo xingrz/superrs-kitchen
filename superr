@@ -31,7 +31,7 @@ assert_devices() {
 		rom_tools
 		return 1
 	fi
-	while [[ ! ${assertch} =~ ^[1-3]+$ ]] && [[ ! $assertch = "m" && ! $assertch = "q" ]]; do
+	while [[ ! ${assertch} =~ ^[1-3]$ ]] && [[ ! $assertch = "m" && ! $assertch = "q" ]]; do
 		banner
 		echo "${bluet}ASSERT MENU: $greent$romname$normal"
 		echo ""
@@ -304,7 +304,7 @@ boot_repack() {
 			bootext=""
 			return 1
 		fi
-	else	
+	else
 		cd $romdir/${chosenimg}img
 		if [[ -d ramdisk2 ]]; then
 			${usesudo}rm -rf ramdisk2/sbin/ramdisk.cpio
@@ -354,7 +354,7 @@ boot_repack() {
 				"${isdtb[@]}" \
 				--output temp.img 2>&1 >/dev/null
 				echo $?
-			)	
+			)
 			if [[ $buildimg -eq 0 ]]; then
 				mv temp.img $romdir/${chosenimg}.img
 				cd $romdir
@@ -394,7 +394,7 @@ boot_repack() {
 	if [[ $repackk = "" ]]; then
 		${usesudo}rm -rf ${chosenimg}img
 	fi
-	if [[ $bootext = "" ]]; then	
+	if [[ $bootext = "" ]]; then
 		banner
 		if [[ $repackk = "" ]]; then
 			echo "$greent$chosenimg.img packed, ramdisk deleted.$normal"
@@ -406,7 +406,7 @@ boot_repack() {
 	if [[ $islg = "lge" ]]; then
 		$tools/open_bump.py $chosenimg.img
 		mv ${chosenimg}_bumped.img $chosenimg.img
-		if [[ $bootext = "" ]]; then	
+		if [[ $bootext = "" ]]; then
 			echo "${greent}renamed ${chosenimg}_bumped.img to $chosenimg.img$normal"
 			echo ""
 		fi
@@ -495,7 +495,7 @@ boot_tools() {
 	elif [[ -f $romdir/recovery.img && ! -f $romdir/boot.img ]]; then
 		chosenimg="recovery"
 	elif [[ -f $romdir/boot.img && -f $romdir/recovery.img ]]; then
-		while [[ ! ${choice} =~ ^[1-2]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-2]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -529,7 +529,7 @@ boot_tools() {
 	fi
 	if [[ -d $romdir/${chosenimg}img ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-6]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-6]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -622,7 +622,7 @@ boot_tools() {
 	fi
 	if [[ ! $chosenimg = "" ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-3]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-3]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -683,7 +683,7 @@ boot_tools() {
 		cd $prfiles/boot
 		get_sig
 		get_byname
-		banner		
+		banner
 		echo "${bluet}Preparing to build ...$normal"
 		if [[ -d $romdir/META-INF ]]; then
 			mv $romdir/META-INF $romdir/META-INF1
@@ -696,7 +696,7 @@ boot_tools() {
 			cp $tools/updater/custom/updater-script-recovery $romdir/META-INF/com/google/android/updater-script
 		elif [[ $chosenimg = "boot" ]]; then
 			signature2=$(echo "$signature-kernel")
-			signature3=$(echo "$signature1 Kernel")	
+			signature3=$(echo "$signature1 Kernel")
 			if [[ -d $romdir/system/etc/init.d ]]; then
 				cp $tools/updater/custom/updater-script-kernel-init $romdir/META-INF/com/google/android/updater-script
 			else
@@ -711,7 +711,7 @@ boot_tools() {
 			sed -i "s/#DEVICENAME/$devicename/g" assert
 			assertch="1"
 			assert_devices
-		else	
+		else
 			cd $prfiles
 			sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
 		fi
@@ -760,9 +760,9 @@ boot_tools() {
 		echo "$greent$signature2.zip has been created in $romname. Enjoy!$normal"
 		echo ""
 		signzip
-		read -p "Press ENTER to return to Boot/Recovery Tools menu"	
+		read -p "Press ENTER to return to Boot/Recovery Tools menu"
 		boot_tools
-		return 1	
+		return 1
 	# START Boot/Recovery Menu
 	elif [[ $choice = "3" ]]; then
 		boot_tools
@@ -784,7 +784,7 @@ boot_unpack() {
 		banner
 		echo "${bluet}Unpacking ${chosenimg}.img ...$normal"
 		echo ""
-	fi		
+	fi
 	if [[ -f $romdir/${chosenimg}.img ]]; then
 		mkdir -p $romdir/${chosenimg}img
 		$tools/unpackbootimg${cyg} -i $romdir/${chosenimg}.img -o $romdir/${chosenimg}img 2>&1 >/dev/null
@@ -835,7 +835,7 @@ boot_unpack() {
 				echo "${redt}There was a problem unpacking your ${chosenimg}.img.$normal"
 				echo ""
 				read -p "Press ENTER to continue"
-				if [[ $bootext = "" ]]; then	
+				if [[ $bootext = "" ]]; then
 					boot_tools
 				fi
 				bootext=""
@@ -849,19 +849,19 @@ boot_unpack() {
 			echo "${redt}There was a problem unpacking your ${chosenimg}.img.$normal"
 			echo ""
 			read -p "Press ENTER to continue"
-			if [[ $bootext = "" ]]; then	
+			if [[ $bootext = "" ]]; then
 				boot_tools
 			fi
 			bootext=""
 			return 1
-		fi		
+		fi
 	else
 		banner
 		echo "${redb}${yellowt}${bold}ERROR:$normal"
 		echo "${redt}You need a ${chosenimg}.img for this process.$normal"
 		echo ""
 		read -p "Press ENTER to continue"
-		if [[ $bootext = "" ]]; then	
+		if [[ $bootext = "" ]]; then
 			boot_tools
 		fi
 		bootext=""
@@ -916,7 +916,7 @@ build_custom_zip() {
 	if [[ $ready = "1" ]]; then
 		banner
 		choice=""
-		while [[ ! ${choice} =~ ^[1-7]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-7]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -938,13 +938,13 @@ build_custom_zip() {
 		# START Build zip menu
 		if [[ $choice = "7" ]]; then
 			build_zip
-			return 1		
+			return 1
 		fi
 		# START Main menu
 		if [[ $choice = "m" ]]; then
 			cd $base
 			exec ./superr
-			return 1		
+			return 1
 		fi
 		# START Exit
 		if [[ $choice = "q" ]]; then
@@ -971,13 +971,13 @@ build_custom_zip() {
 			sed -i "s/#DEVICENAME/$devicename/g" assert
 			assertch="1"
 			assert_devices
-		else	
+		else
 			sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
 		fi
 		grep -v "#ASSERT" $romdir/META-INF/com/google/android/updater-script > $romdir/META-INF/com/google/android/updater-script2
 		mv $romdir/META-INF/com/google/android/updater-script2 $romdir/META-INF/com/google/android/updater-script
 		sed -i "s/#SIGNATURE/$signature1/g" $romdir/META-INF/com/google/android/updater-script
-		sed -i "s/#DEVICENAME/$devicename/g" $romdir/META-INF/com/google/android/updater-script	
+		sed -i "s/#DEVICENAME/$devicename/g" $romdir/META-INF/com/google/android/updater-script
 		if [[ $choice = "1" || $choice = "2" || $choice = "4" ]]; then
 			cd $romdir
 			find system vendor 2>/dev/null | sed 's/^/\//' | sort > $prfiles/all_files.txt
@@ -1001,7 +1001,7 @@ build_custom_zip() {
 			done
 			sort -u symlinks > symlinks2
 			mv symlinks2 symlinks
-			rm -rf appsym		
+			rm -rf appsym
 			grep "/system/app/\|/system/priv-app/" symlinks | sort >> symlinks_lib
 			sed -i '1iui_print(\"\");' symlinks_lib
 			sed -i '1iui_print(\"Creating symlinks...\");' symlinks_lib
@@ -1019,7 +1019,7 @@ build_custom_zip() {
 					if [[ $REPLY = "y" ]]; then
 						dozipalign
 					fi
-				fi			
+				fi
 			else
 				banner
 				echo "${redb}${yellowt}${bold}ERROR:$normal"
@@ -1034,7 +1034,7 @@ build_custom_zip() {
 			grep -v "#SYM" updater-script > updater-script2
 			mv updater-script2 updater-script
 		fi
-		banner				
+		banner
 		# START framework, app, priv-app
 		if [[ $choice = "1" ]]; then
 			if [[ ! $isframe = "" && ! $isapp = "" && ! $isprivapp = "" ]]; then
@@ -1064,11 +1064,11 @@ build_custom_zip() {
 				read -p "Press ENTER to return to the Build menu"
 				build_zip
 				return 1
-			fi		
+			fi
 		fi
 		# START framework, app, priv-app, lib
 		if [[ $choice = "2" ]]; then
-			if [[ ! $isframe = "" && ! $isapp = "" && ! $isprivapp = "" && ! $islib = "" ]]; then	
+			if [[ ! $isframe = "" && ! $isapp = "" && ! $isprivapp = "" && ! $islib = "" ]]; then
 				signature2=$(echo "$signature-aflp")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
 				cd $romdir/META-INF/com/google/android
@@ -1099,7 +1099,7 @@ build_custom_zip() {
 		fi
 		# START framework
 		if [[ $choice = "3" ]]; then
-			if [[ ! $isframe = "" ]]; then	
+			if [[ ! $isframe = "" ]]; then
 				signature2=$(echo "$signature-framework")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
 				cd $romdir/META-INF/com/google/android
@@ -1342,7 +1342,7 @@ build_rom_zip() {
 			fi
 		fi
 		rm -rf $romdir/tmpsparse
-		banner		
+		banner
 		echo "${bluet}Building $signature.zip in $romname"
 		echo ""
 		echo "${yellowt}This may take a while. Please be patient ...$normal"
@@ -1379,7 +1379,7 @@ build_rom_zip() {
 			findimgsize
 		fi
 		if [[ ! $(grep "\"/data\"" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
-			if [[ ! -f $prfiles/data-set_metadata ]]; then	
+			if [[ ! -f $prfiles/data-set_metadata ]]; then
 				whatimg="data"
 				findimgsize
 			fi
@@ -1397,7 +1397,7 @@ build_rom_zip() {
 				partimg
 			fi
 		fi
-		banner		
+		banner
 		echo "${bluet}Building $signature.zip in $romname"
 		echo ""
 		echo "${yellowt}This may take a while. Please be patient ...$normal"
@@ -1407,9 +1407,9 @@ build_rom_zip() {
 		else
 			$p7z a -mx7 $signature.zip boot.img META-INF system_new.img vendor_new.img data_new.img supersu busybox 2>/dev/null >> $logs/zip.log
 		fi
-		rm -rf system_new.img vendor_new.img data_new.img	
+		rm -rf system_new.img vendor_new.img data_new.img
 	else
-		banner		
+		banner
 		echo "${bluet}Building $signature.zip in $romname ...$normal"
 		$p7z a -mx7 $signature.zip boot.img META-INF system vendor data supersu busybox 2>/dev/null >> $logs/zip.log
 	fi
@@ -1432,7 +1432,7 @@ build_rom_zip() {
 }
 build_zip() {
 	choice=""
-	while [[ ! ${choice} =~ ^[1-5]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+	while [[ ! ${choice} =~ ^[1-5]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 		banner
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -1456,7 +1456,7 @@ build_zip() {
 	# START Build ROM Zip
 	if [[ $choice = "1" ]]; then
 		build_rom_zip
-		return 1		
+		return 1
 	# START Build system.img
 	elif [[ $choice = "2" ]]; then
 		banner
@@ -1568,7 +1568,7 @@ change_permtype() {
 		fi
 	fi
 	choice=""
-	while [[ ! ${choice} =~ ^[1-5]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+	while [[ ! ${choice} =~ ^[1-5]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 		banner
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -1649,7 +1649,7 @@ change_permtype() {
 		rom_tools
 		return 1
 	fi
-	banner	
+	banner
 	# set_metadata chosen
 	if [[ $choice = "1" ]]; then
 		if [[ ! $api -ge "19" ]]; then
@@ -1736,7 +1736,7 @@ change_permtype() {
 		if [[ -f $prfiles/permtype ]]; then
 			mv $prfiles/permtype $prfiles/permtype_old
 		fi
-		echo "$permtype" > $prfiles/permtype	
+		echo "$permtype" > $prfiles/permtype
 	# raw_img chosen
 	elif [[ $choice = "4" ]]; then
 		echo "${bluet}Changing perm type ...$normal"
@@ -1812,8 +1812,8 @@ data_app() {
 	whatpart="data"
 	partadd
 	mkdir -p $romdir/data/app
-}	
-data_apprem() {		
+}
+data_apprem() {
 	cd $romdir/META-INF/com/google/android
 	grep -v "\"\/data\"\|\"\/data\/app\"\|Extracting data\|#DATA\|data.transfer\|data_new.img\|#DATA" updater-script > updater-script2
 	mv updater-script2 updater-script
@@ -1862,7 +1862,7 @@ debloat_rom() {
 	isdebloatcustomstatus
 	isknoxstatus
 	choice=""
-	while [[ ! ${choice} =~ ^[1-6]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+	while [[ ! ${choice} =~ ^[1-6]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 		banner
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -1875,7 +1875,7 @@ debloat_rom() {
 		else
 			echo "2) Custom Debloat (${bluet}CURRENT:$normal $debloatcustomstatus1)"
 		fi
-		echo "3) Remove Samsung Knox (${bluet}CURRENT:$normal $knoxstatus1)" 
+		echo "3) Remove Samsung Knox (${bluet}CURRENT:$normal $knoxstatus1)"
 		echo "4) Restore Bloat/Knox"
 		echo "5) Refresh Bloat Status"
 		echo "${yellowt}6) ROM Tools Menu"
@@ -1907,8 +1907,8 @@ debloat_rom() {
 		banner
 		echo "${bluet}Removing bloat ...$normal"
 		debloat=""
-		cat $prfiles/debloat_list | while read debloat; do 
-			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev) 
+		cat $prfiles/debloat_list | while read debloat; do
+			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev)
 			mkdir -p $prfiles/debloated_files/$debloatdir
 			mv $romdir/$debloat $prfiles/debloated_files/$debloatdir
 		done
@@ -1958,8 +1958,8 @@ debloat_rom() {
 		banner
 		echo "${bluet}Removing bloat ...$normal"
 		debloat=""
-		cat $prfiles/debloat_custom | while read debloat; do 
-			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev) 
+		cat $prfiles/debloat_custom | while read debloat; do
+			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev)
 			mkdir -p $prfiles/debloated_files/$debloatdir
 			mv $romdir/$debloat $prfiles/debloated_files/$debloatdir
 		done
@@ -1998,8 +1998,8 @@ debloat_rom() {
 		banner
 		echo "${bluet}Removing knox ...$normal"
 		debloat=""
-		cat $prfiles/debloat_knox | while read debloat; do 
-			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev) 
+		cat $prfiles/debloat_knox | while read debloat; do
+			debloatdir=$(echo $debloat | rev | cut -d"/" -f2- | rev)
 			mkdir -p $prfiles/debloated_files/$debloatdir
 			mv $romdir/$debloat $prfiles/debloated_files/$debloatdir
 		done
@@ -2100,7 +2100,7 @@ delete_project() {
 		read -p "Press ENTER to return to then Main menu"
 		cd $base
 		exec ./superr
-		return 1			
+		return 1
 	fi
 	while [[ $delrom = "" ]]; do
 		banner
@@ -2116,7 +2116,7 @@ delete_project() {
 			return 1
 		elif [[ $REPLY = "q" ]]; then
 			exitk
-		else 
+		else
 			delrom="$delproject"
 		fi
 	done
@@ -2164,14 +2164,14 @@ deodex_l() {
 	arm64test=$(ls -d */ | sed 's/\///' | grep -m 1 arm64$)
 	x86test=$(ls -d */ | sed 's/\///' | grep -m 1 x86$)
 	x86_64test=$(ls -d */ | sed 's/\///' | grep -m 1 x86_64$)
-	if [[ $arm64test = "arm64" && -f $framedir/arm64/boot.oat ]]; then	
+	if [[ $arm64test = "arm64" && -f $framedir/arm64/boot.oat ]]; then
 		arch="arm64"
-		if [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then 
+		if [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then
 			arch2="arm"
 		fi
-	elif [[ $x86_64test = "x86_64" && -f $framedir/x86_64/boot.oat ]]; then	
+	elif [[ $x86_64test = "x86_64" && -f $framedir/x86_64/boot.oat ]]; then
 		arch="x86_64"
-		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then 
+		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 			arch2="x86"
 		fi
 	elif [[ $armtest = "arm" && -f $framedir/$armtest/boot.oat ]]; then
@@ -2303,13 +2303,13 @@ deodex_l() {
 				echo ""
 				$p7z e "$appdir/$app/$arch2/$app.odex.xz" 2>/dev/null >> $logs/zip.log
 			fi
-		done 
+		done
 	fi
 
 	cd $tools/smali/old
 	app=""
 	for app in $( ls $appdir ); do
-		if [[ -d "$appdir/$app/$arch" ]]; then	
+		if [[ -d "$appdir/$app/$arch" ]]; then
 			if [[ $($p7z l $appdir/$app/$app.apk | grep classes.dex) = "" ]]; then
 				echo ""
 				echo "... Deodexing $app"
@@ -2459,7 +2459,7 @@ deodex_l() {
 					java -jar $oat2dexo $privdir/$privapp/$arch2/$privapp.odex $framedir/$arch2/odex >> $logs/deodex.log
 					mv $privdir/$privapp/$arch2/$privapp.dex $privdir/$privapp/$arch2/classes.dex
 					if [[ -f "$privdir/$privapp/$arch2/$privapp-classes2.dex" ]]; then
-						mv $privdir/$privapp/$arch2/$privapp-classes2.dex $privdir/$privapp/$arch2/classes2.dex	
+						mv $privdir/$privapp/$arch2/$privapp-classes2.dex $privdir/$privapp/$arch2/classes2.dex
 					fi
 					if [[ -f "$privdir/$privapp/$arch2/$privapp-classes3.dex" ]]; then
 						mv $privdir/$privapp/$arch2/$privapp-classes3.dex $privdir/$privapp/$arch2/classes3.dex
@@ -2636,7 +2636,7 @@ deodex_m() {
 			echo ""
 			echo "Type the arch of your device and press ENTER."
 			echo ""
-			read arch 
+			read arch
 		done
 	fi
 
@@ -2748,13 +2748,13 @@ deodex_m() {
 				echo ""
 				$p7z e "$appdir/$app/oat/$arch2/$app.odex.xz" 2>/dev/null >> $logs/zip.log
 			fi
-		done 
+		done
 	fi
 
 	cd $tools/smali/old
 	app=""
 	for app in $( ls $appdir ); do
-		if [[ -d "$appdir/$app/oat/$arch" ]]; then	
+		if [[ -d "$appdir/$app/oat/$arch" ]]; then
 			if [[ $($p7z l $appdir/$app/$app.apk | grep classes.dex) = "" ]]; then
 				echo ""
 				echo "... Deodexing $app"
@@ -3100,7 +3100,7 @@ deodex_m() {
 				( java -jar $baksmali -x -d $framedir/$arch -c boot.oat:$frame.odex -d $framedir/oat/$arch/ $framedir/oat/$arch/$frame.odex -o $framedir/oat/$arch/smali 2>&1 ) > $framedir/oat/$arch/classes2.log
 				if [[ $(grep classes2 $framedir/oat/$arch/classes2.log) = "" ]]; then
 					java -jar $smali -a $api $framedir/oat/$arch/smali -o $framedir/oat/$arch/classes.dex >> $logs/deodex.log
-					rm -rf $framedir/oat/$arch/smali				
+					rm -rf $framedir/oat/$arch/smali
 				else
 					grep "/system/framework" $framedir/oat/$arch/classes2.log | sed "s/\/system\/framework\///" >> $framedir/oat/$arch/classes3.log
 					mv $framedir/oat/$arch/classes3.log $framedir/oat/$arch/classes2.log
@@ -3765,7 +3765,7 @@ deodex_n() {
 			echo ""
 			echo "Type the arch of your device and press ENTER."
 			echo ""
-			read arch 
+			read arch
 		done
 	fi
 
@@ -3885,13 +3885,13 @@ deodex_n() {
 				echo ""
 				$p7z e "$appdir/$app/oat/$arch2/$app.odex.xz" 2>/dev/null >> $logs/zip.log
 			fi
-		done 
+		done
 	fi
 
 	cd $tools/smali/current
 	app=""
 	for app in $( ls $appdir ); do
-		if [[ -d "$appdir/$app/oat/$arch" ]]; then	
+		if [[ -d "$appdir/$app/oat/$arch" ]]; then
 			if [[ $($p7z l $appdir/$app/$app.apk | grep classes.dex) = "" ]]; then
 				echo ""
 				echo "... Deodexing $app"
@@ -4232,7 +4232,7 @@ deodex_n() {
 				( java -jar $baksmali -x -d $framedir/$arch -c boot.oat:$frame.odex -d $framedir/oat/$arch/ $framedir/oat/$arch/$frame.odex -o $framedir/oat/$arch/smali 2>&1 ) > $framedir/oat/$arch/classes2.log
 				if [[ $(grep classes2 $framedir/oat/$arch/classes2.log) = "" ]]; then
 					java -jar $smali -a $api $framedir/oat/$arch/smali -o $framedir/oat/$arch/classes.dex >> $logs/deodex.log
-					rm -rf $framedir/oat/$arch/smali				
+					rm -rf $framedir/oat/$arch/smali
 				else
 					grep "/system/framework" $framedir/oat/$arch/classes2.log | sed "s/\/system\/framework\///" >> $framedir/oat/$arch/classes3.log
 					mv $framedir/oat/$arch/classes3.log $framedir/oat/$arch/classes2.log
@@ -4385,13 +4385,13 @@ deodex_old() {
 	fi
 	cd $tools/smali/old
 	echo "$clears"
-	
+
 	echo ""
 	echo "----------------------------------------------------"
 	echo "Start deodexing /system/priv-app ..."
 	echo "----------------------------------------------------"
 	echo ""
-	
+
 	privapp=""
 	for privapp in $( ls $privdir | grep .apk | rev | cut -c 5- | rev ); do
 		if [[ -f "$privdir/$privapp.odex" ]]; then
@@ -4414,13 +4414,13 @@ deodex_old() {
 		fi
 	done
 	echo "$clears"
-	
+
 	echo ""
 	echo "----------------------------------------------------"
 	echo "Start deodexing /system/framework ..."
 	echo "----------------------------------------------------"
 	echo ""
-	
+
 	frame=""
 	for frame in $( ls $framedir | grep .jar | rev | cut -c 5- | rev ); do
 		if [[ -f "$framedir/$frame.odex" ]]; then
@@ -4574,7 +4574,7 @@ extract_new() {
 		read -p "Press ENTER to return to the Main menu"
 		cd $base
 		exec ./superr
-		return 1			
+		return 1
 	fi
 	cd $romdir
 	romzip=""
@@ -4627,7 +4627,7 @@ extract_new() {
 			elif [[ $REPLY = "q" ]]; then
 				rm -rf $prfiles/findextract
 				exitk
-			else 
+			else
 				if [[ ! $(echo $project | grep .zip$) = "" ]]; then
 					romzip="$project"
 				elif [[ ! $(echo $project | grep .tar$) = "" ]]; then
@@ -4655,9 +4655,9 @@ extract_new() {
 			fi
 		done
 	fi
-	if [[ $romzip = "" && $romtar = "" && $romimg = "" && $romwin = "" && $romchunk = "" && $romtgz = "" ]]; then	
+	if [[ $romzip = "" && $romtar = "" && $romimg = "" && $romwin = "" && $romchunk = "" && $romtgz = "" ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-2]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-2]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo ""
@@ -4679,7 +4679,7 @@ extract_new() {
 		# START Pull system, vendor, boot, and recovery images from device
 		elif [[ $choice = "2" ]]; then
 			choice=""
-			while [[ ! ${choice} =~ ^[1-2]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+			while [[ ! ${choice} =~ ^[1-2]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 				banner
 				echo "$yellowb${redt}Choose option to extract images$normal"
 				echo ""
@@ -4838,7 +4838,7 @@ extract_new() {
 			fi
 			if [[ -f $romdir/system.img ]]; then
 				romimg="system.img"
-			else	
+			else
 				banner
 				echo "${redb}${yellowt}${bold}ERROR:$normal"
 				echo "${redt}Something went wrong. Most likely you lack permission to"
@@ -4848,7 +4848,7 @@ extract_new() {
 				read -p "Press ENTER to return to the Main menu"
 				cd $base
 				exec ./superr
-				return 1			
+				return 1
 			fi
 		# START Main Menu
 		elif [[ $choice = "m" ]]; then
@@ -4876,7 +4876,7 @@ extract_new() {
 	if [[ ! $romimg = "cache.img" && ! $romimg = "hidden.img" && ! $romimg = "data.img" && ! $romimg = "vendor.img" && ! $romimg = "generic.img" ]]; then
 		moveoldfiles
 	fi
-	if [[ ! $romzip = "" ]]; then	
+	if [[ ! $romzip = "" ]]; then
 		if [[ $($p7z l $romzip | grep "META-INF/com/google/android/updater-script") = "" && $($p7z l $romzip | grep "system.ext4.tar\|tar.md5\|chunk") = "" ]]; then
 			banner
 			echo "${redb}${yellowt}${bold}WARNING:$normal"
@@ -4888,7 +4888,7 @@ extract_new() {
 				cd $base
 				exec ./superr
 				return 1
-			fi			
+			fi
 		fi
 		if [[ ! $($p7z l $romdir/$romzip | grep system.new.dat) = "" ]]; then
 			banner
@@ -4920,7 +4920,7 @@ extract_new() {
 			if [[ -f vendor_new.img ]]; then
 				mv vendor_new.img vendor.img
 			fi
-			romzip=""			
+			romzip=""
 			romimg="system.img"
 		elif [[ ! $($p7z l $romzip | grep system.ext4.tar.a) = "" ]]; then
 			banner
@@ -4964,7 +4964,7 @@ extract_new() {
 			$p7z e $romzip *chunk* boot.img 2>/dev/null >> $logs/zip.log
 			romzip=""
 			romchunk=$(ls | grep chunk)
-		fi			
+		fi
 		if [[ ! $romzip = "" ]]; then
 			banner
 			echo "${bluet}Extracting $romzip in $romname$normal"
@@ -4979,7 +4979,7 @@ extract_new() {
 				mkdir -p $base/tools/devices/$devicename
 				deviceloc=$base/tools/devices/$devicename
 				cd $romdir/META-INF/com/google/android
-				if [[ ! -f $deviceloc/superr_byname ]]; then	
+				if [[ ! -f $deviceloc/superr_byname ]]; then
 					mountck=$(grep "/system" updater-script | grep -m 1 "^mount" | gawk '{ print $3 }' | sed 's/\"//g; s/\/system//g; s/\,//g; s:\/:\\/:g')
 					if [[ ! $(echo "$mountck" | grep mmcblk) = "" ]]; then
 						echo "$mountck \/system" > $deviceloc/superr_mmc
@@ -5041,10 +5041,10 @@ extract_new() {
 		banner
 		echo "${bluet}Extracting to $romname ...$normal"
 		cd $romdir
-		echo "$romwin" | while read line; do				
+		echo "$romwin" | while read line; do
 			if [[ $tosystem = "1" ]]; then
 				tar -xf $line -C system >/dev/null 2>/dev/null >> $logs/zip.log
-			else 
+			else
 				tar -xf $line >/dev/null 2>/dev/null >> $logs/zip.log
 			fi
 		done
@@ -5088,7 +5088,7 @@ extract_new() {
 			mv $romdir/$romimgdir $romdir/system
 		fi
 	fi
-	if [[ ! $romtar = "" ]]; then	
+	if [[ ! $romtar = "" ]]; then
 		if [[ ! $(ls | grep .tar.a) = "" && $(ls | grep .tar | wc -l) -gt "1" ]]; then
 			romtara=$(ls | grep .tar.a)
 			romtaratar=$(echo $romtara | sed 's/tar\.a/tar/')
@@ -5111,7 +5111,7 @@ extract_new() {
 		if [[ ! $(tar -tf $romtar -P 2>&1 | grep -o -m 1 system/) = "system/" ]]; then
 			mkdir system
 			tar -xf $romtar -C system 2>/dev/null >> $logs/zip.log
-		else 
+		else
 			tar -xf $romtar 2>/dev/null >> $logs/zip.log
 		fi
 	fi
@@ -5175,7 +5175,7 @@ extract_new() {
 							rm -rf $prfiles/vendorimg
 						fi
 					fi
-				fi			
+				fi
 			fi
 			get_devicename
 			mkdir -p $base/tools/devices/$devicename
@@ -5228,17 +5228,17 @@ extract_new() {
 findfstab() {
 		fstab=$(${usesudo}find ! -type l | grep -v "goldfish\|ranchu" | grep -m 1 fstab | sed 's/\.\///')
 }
-findimgsize() {	
+findimgsize() {
 	cd $romdir
 	imgfile=$(echo $whatimg | cut -c1-3)
 	if [[ -f $deviceloc/${imgfile}imgsize ]]; then
 		export ${imgfile}size=$(cat $deviceloc/${imgfile}imgsize)
 	else
 		choice=""
-		while [[ ! ${choice} =~ ^[1-4]+$ ]] && [[ ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-4]$ ]] && [[ ! $choice = "q" ]]; do
 			banner
 			echo "$yellowb${redt}Choose $whatimg partition detection method$normal"
-			echo ""	
+			echo ""
 			echo "1) Device through adb shell (recommended)"
 			echo "2) Project $whatimg directory (BETA)"
 			echo "3) Enter manually"
@@ -5373,7 +5373,7 @@ findimgsize() {
 get_byname() {
 	if [[ ! -s $deviceloc/superr_byname ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-4]+$ ]]; do
+		while [[ ! ${choice} =~ ^[1-4]$ ]]; do
 			banner
 			echo "How would you like to get your partition info?"
 			echo ""
@@ -5436,7 +5436,7 @@ get_byname() {
 				rm -rf $deviceloc/devicename
 				rm -rf $deviceloc/build.prop
 				get_byname
-				return 1			
+				return 1
 			fi
 		fi
 		# START Detect by-name from the boot.img
@@ -5631,7 +5631,7 @@ get_sig() {
 get_symlinks() {
 	grep ^symlink updater-script > $prfiles/symlinks
 	grep ",$" $prfiles/symlinks > $prfiles/symlinks2
-	if [[ -s $prfiles/symlinks2 ]]; then	
+	if [[ -s $prfiles/symlinks2 ]]; then
 		line=""
 		cat $prfiles/symlinks2 | while read line; do
 			line2=$(echo "$line" | sed 's/\"/\\"/g; s/ /\\ /g; s:\/:\\/:g; s/\[/\\[/g')
@@ -5766,7 +5766,7 @@ install_binaries() {
 	echo "      kitchen to build them. It is recommended to have the kitchen"
 	echo "      build the binaries if possible$normal"
 	echo ""
-	read -n 1 -p "Would you like to install the $osbit-bit binaries anyway? y/n  "	
+	read -n 1 -p "Would you like to install the $osbit-bit binaries anyway? y/n  "
 	if [[ ! $REPLY = "y" ]]; then
 		exitk
 	fi
@@ -5791,7 +5791,7 @@ install_cygwin_binaries() {
 	cd $base
 	dlurl="https://bitbucket.org/superr/superrs-kitchen/downloads"
 	echo ""
-	read -n 1 -p "Would you like to install the cygwin binaries now? y/n  "	
+	read -n 1 -p "Would you like to install the cygwin binaries now? y/n  "
 	if [[ ! $REPLY = "y" ]]; then
 		exitk
 	fi
@@ -5868,7 +5868,7 @@ isdebloatstatus() {
 	else
 		debloatstatus="Bloated"
 		debloatstatus1=$(echo "${redt}Bloated${normal}")
-	fi	
+	fi
 }
 isdebloatcustomstatus() {
 	if [[ ! -f $tools/root/bloat_custom ]]; then
@@ -5892,7 +5892,7 @@ isdebloatcustomstatus() {
 	else
 		debloatcustomstatus="Debloated"
 		debloatcustomstatus1=$(echo "${redt}/tools/root/bloat_custom is EMPTY${normal}")
-	fi	
+	fi
 }
 isdmverity() {
 	if [[ -d $romdir/bootimg/ramdisk ]]; then
@@ -5963,7 +5963,7 @@ isknoxstatus() {
 		cat $tools/root/knox | while read debloat; do
 			( find $debloat -maxdepth 0 2>/dev/null | sed 's/^\.\///' ) >> $prfiles/debloat_knox
 		done
-	fi	
+	fi
 	if [[ ! -s $prfiles/debloat_knox ]]; then
 		knoxstatus="No"
 		knoxstatus1=$(echo "${greent}No Knox${normal}")
@@ -6025,10 +6025,10 @@ kitchen_update() {
 			read -p "Press ENTER to return to main menu"
 			exec ./superr
 			return 1
-		fi 
+		fi
 		if [[ "$currentv" -lt "$upcheck" ]]; then
 			choice=""
-			while [[ ! ${choice} =~ ^[1-2]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+			while [[ ! ${choice} =~ ^[1-2]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 				banner
 				echo "${greenb}An update is available$normal"
 				echo ""
@@ -6042,7 +6042,7 @@ kitchen_update() {
 				echo ""
 				read -n 1 -p "Please enter your choice: " choice
 			done
-			
+
 			if [[ $choice = "m" ]]; then
 				exec ./superr
 				return 1
@@ -6061,7 +6061,7 @@ kitchen_update() {
 				kitchen_update
 				return 1
 			# START Update now
-			elif [[ $choice = "1" ]]; then	
+			elif [[ $choice = "1" ]]; then
 				if [[ -d ".git" ]]; then
 					banner
 					echo "${bluet}Updating ...$normal"
@@ -6103,7 +6103,7 @@ kitchen_update() {
 				touch $tools/updatecheck-yes
 			else
 				touch $tools/updatecheck-no
-			fi		
+			fi
 		fi
 	else
 		banner
@@ -6142,7 +6142,7 @@ moveoldfiles() {
 	if [[ -d $romdir/install ]]; then
 		mv $romdir/install $prfiles/old_rom_files/$romname.$temptime/
 	fi
-	if [[ ! $romzip = "" && ! $($p7z l $romdir/$romzip | grep boot.img) = "" ]]; then	
+	if [[ ! $romzip = "" && ! $($p7z l $romdir/$romzip | grep boot.img) = "" ]]; then
 		if [[ -f $romdir/boot.img ]]; then
 			if [[ ! -d $prfiles/old_rom_files/$romname.$temptime ]]; then
 				echo $timestamp > $prfiles/temptime
@@ -6195,7 +6195,7 @@ partadd() {
 	if [[ -f $deviceloc/superr_mmc && ! $(grep "$whatpart" $deviceloc/superr_mmc) = "" ]]; then
 		partbyname=$(grep "$whatpart" $deviceloc/superr_mmc | gawk '{ print $1 }')
 	elif [[ -f $deviceloc/superr_byname && ! $(grep "by-name" $deviceloc/superr_byname) = "" ]]; then
-		if [[ $whatpart = "vendor" ]]; then	
+		if [[ $whatpart = "vendor" ]]; then
 			if [[ -f $deviceloc/superr_capbyname ]]; then
 				partbyname="$(cat $deviceloc/superr_byname)\/VENDOR"
 			elif [[ -f $deviceloc/superr_appbyname ]]; then
@@ -6203,7 +6203,7 @@ partadd() {
 			else
 				partbyname="$(cat $deviceloc/superr_byname)\/vendor"
 			fi
-		elif [[ $whatpart = "data" ]]; then	
+		elif [[ $whatpart = "data" ]]; then
 			if [[ -f $deviceloc/superr_capbyname ]]; then
 				partbyname="$(cat $deviceloc/superr_byname)\/USERDATA"
 			elif [[ -f $deviceloc/superr_appbyname ]]; then
@@ -6211,22 +6211,24 @@ partadd() {
 			else
 				partbyname="$(cat $deviceloc/superr_byname)\/userdata"
 			fi
-		fi		
+		fi
 	fi
 	if [[ ! $partbyname = "" ]]; then
 		if [[ $permtype = "sparse_dat" || $permtype = "raw_img" ]]; then
 			cd $romdir/META-INF/com/google/android
-			gawk 'a=/^mount/{b=1}b&&!a{print "#MOUNT";b=0}1' updater-script > updater-script2
-			mv updater-script2 updater-script
-			if [[ $permtype = "sparse_dat" ]]; then	
-				sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\"\,\ \"\");/" updater-script
-			else
-				sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\");/" updater-script
+			if [[ ! $whatpart = "data" ]]; then
+				gawk 'a=/^mount/{b=1}b&&!a{print "#MOUNT";b=0}1' updater-script > updater-script2
+				mv updater-script2 updater-script
+				if [[ $permtype = "sparse_dat" ]]; then
+					sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\"\,\ \"\");/" updater-script
+				else
+					sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\");/" updater-script
+				fi
+				gawk 'a=/^unmount/{b=1}b&&!a{print "#UNMOUNT";b=0}1' updater-script > updater-script2
+				mv updater-script2 updater-script
+				sed -i "s/#UNMOUNT/unmount(\"\/$whatpart\");/" updater-script
 			fi
-			gawk 'a=/^unmount/{b=1}b&&!a{print "#UNMOUNT";b=0}1' updater-script > updater-script2
-			mv updater-script2 updater-script
-			sed -i "s/#UNMOUNT/unmount(\"\/$whatpart\");/" updater-script
-			if [[ $whatpart = "vendor" ]]; then 	
+			if [[ $whatpart = "vendor" ]]; then
 				if [[ $permtype = "sparse_dat" ]]; then
 					gawk 'a=/^block_image_update/{b=1}b&&!a{print "#VENDOR";b=0}1' updater-script > updater-script2
 				else
@@ -6236,14 +6238,14 @@ partadd() {
 				sed -i "/#VENDOR/ r $tools/updater/vendor-$permtype.txt" updater-script
 				sed -i "s/#PARTVENDOR/$partbyname/" updater-script
 			elif [[ $whatpart = "data" ]]; then
-				if [[ $permtype = "sparse_dat" ]]; then	
+				if [[ $permtype = "sparse_dat" ]]; then
 					gawk 'a=/^block_image_update/{b=1}b&&!a{print "#DATA";b=0}1' updater-script > updater-script2
 				else
 					gawk 'a=/system_new/{b=1}b&&!a{print "#DATA";b=0}1' updater-script > updater-script2
 				fi
 				mv updater-script2 updater-script
 				choice=""
-				while [[ ! ${choice} =~ ^[1-2]+$ ]]; do
+				while [[ ! ${choice} =~ ^[1-2]$ ]]; do
 					banner
 					echo "${yellowb}${redt}Data perm type:$normal"
 					echo ""
@@ -6265,17 +6267,17 @@ partadd() {
 			fi
 		else
 			cd $romdir/META-INF/com/google/android
-			if [[ ! $whatpart = "data" ]]; then	
+			if [[ ! $whatpart = "data" ]]; then
 				gawk 'a=/^format/{b=1}b&&!a{print "#FORMAT";b=0}1' updater-script > updater-script2
 				mv updater-script2 updater-script
 				sed -i "s/#FORMAT/format(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"0\"\,\ \"\/$whatpart\");/" updater-script
+				gawk 'a=/^mount/{b=1}b&&!a{print "#MOUNT";b=0}1' updater-script > updater-script2
+				mv updater-script2 updater-script
+				sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\");/" updater-script
+				gawk 'a=/^unmount/{b=1}b&&!a{print "#UNMOUNT";b=0}1' updater-script > updater-script2
+				mv updater-script2 updater-script
+				sed -i "s/#UNMOUNT/unmount(\"\/$whatpart\");/" updater-script
 			fi
-			gawk 'a=/^mount/{b=1}b&&!a{print "#MOUNT";b=0}1' updater-script > updater-script2
-			mv updater-script2 updater-script
-			sed -i "s/#MOUNT/mount(\"ext4\"\,\ \"EMMC\"\,\ \"$partbyname\"\,\ \"\/$whatpart\");/" updater-script
-			gawk 'a=/^unmount/{b=1}b&&!a{print "#UNMOUNT";b=0}1' updater-script > updater-script2
-			mv updater-script2 updater-script
-			sed -i "s/#UNMOUNT/unmount(\"\/$whatpart\");/" updater-script
 			if [[ $whatpart = "vendor" ]]; then
 				gawk 'a=/^package_extract_dir/{b=1}b&&!a{print "#VENDOR";b=0}1' updater-script > updater-script2
 				mv updater-script2 updater-script
@@ -6333,8 +6335,8 @@ partimg() {
 		ln -s -f -T $target $link
 	done
 	banner
-	if [[ -f $prfiles/file_contexts ]]; then	
-		echo "${bluet}Creating raw $whatpart.img ...$normal"	
+	if [[ -f $prfiles/file_contexts ]]; then
+		echo "${bluet}Creating raw $whatpart.img ...$normal"
 		if [[ $whatpart = "system" ]]; then
 			( $tools/make_ext4fs${cyg} -T 0 -S $prfiles/file_contexts -l $syssize -a $whatpart ${whatpart}_new.img ${whatpart}/ 2>&1 ) >> $logs/main.log
 		elif [[ $whatpart = "vendor" ]]; then
@@ -6343,7 +6345,7 @@ partimg() {
 			( $tools/make_ext4fs${cyg} -T 0 -S $prfiles/file_contexts -l $datsize -a $whatpart ${whatpart}_new.img ${whatpart}/ 2>&1 ) >> $logs/main.log
 		fi
 	else
-		echo "${bluet}Creating raw $whatpart.img ...$normal"	
+		echo "${bluet}Creating raw $whatpart.img ...$normal"
 		if [[ $whatpart = "system" ]]; then
 			( $tools/make_ext4fs${cyg} -T 0 -l $syssize -a $whatpart ${whatpart}_new.img ${whatpart}/ 2>&1 ) >> $logs/main.log
 		elif [[ $whatpart = "vendor" ]]; then
@@ -6388,7 +6390,7 @@ part_setup() {
 			echo "info manually after the zip is created$normal"
 			echo ""
 			read -p "Press ENTER to continue"
-		fi		
+		fi
 		mmcsystem=$(grep "system" $deviceloc/superr_mmc | gawk '{ print $1 }')
 		sed -i "s/#BYNAME\/system/$mmcsystem/g" $romdir/META-INF/com/google/android/updater-script
 	else
@@ -6464,7 +6466,7 @@ rom_tools() {
 	isassertdevices
 	permtype=$(cat $prfiles/permtype)
 	debloatstatus1=""
-	if [[ -f $prfiles/debloat_test ]]; then	
+	if [[ -f $prfiles/debloat_test ]]; then
 		if [[ ! -s $prfiles/debloat_test ]]; then
 			debloatstatus1=$(echo "${greent}Debloated${normal}")
 		else
@@ -6472,7 +6474,7 @@ rom_tools() {
 		fi
 	fi
 	choice=""
-	while [[ ! ${choice} =~ ^[1-8]+$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+	while [[ ! ${choice} =~ ^[1-8]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 		banner
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -6536,7 +6538,7 @@ rom_tools() {
 			read -p "Press ENTER to return to ROM Tools"
 			rom_tools
 			return 1
-		fi		
+		fi
 		if [[ -f $romdir/system/odex.sqsh ]]; then
 			sqshfile="odex.sqsh"
 			deodex_sqsh
@@ -6557,7 +6559,7 @@ rom_tools() {
 			return 1
 		elif [[ $api -ge 23 && ! $androidversion = "N" ]]; then
 			choice=""
-			while [[ ! ${choice} =~ ^[1-2]+$ ]]; do
+			while [[ ! ${choice} =~ ^[1-2]$ ]]; do
 				banner
 				echo "Which deodex method should we use?"
 				echo ""
@@ -6644,7 +6646,7 @@ rom_tools() {
 			fi
 		fi
 		rom_tools
-		return 1	
+		return 1
 	# START /data/app support
 	elif [[ $choice = "4" ]]; then
 		if [[ ! $dataapp = "Yes" ]]; then
@@ -6716,7 +6718,7 @@ rom_tools() {
 root() {
 	if [[ $api -ge "23" ]] || [[ $androidversion = "5.1.1" && $(grep "ro.product.brand" $romdir/system/build.prop | cut -d"=" -f2) = "samsung" ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-3]+$ ]]; do
+		while [[ ! ${choice} =~ ^[1-3]$ ]]; do
 			banner
 			echo "Which root method would you like?"
 			echo ""
@@ -6794,7 +6796,7 @@ root() {
 	sed -i "s/#SUPERSU/$supersu/g" $romdir/META-INF/com/google/android/updater-script
 	mkdir -p $romdir/supersu
 	cp $tools/root/supersu/$supersu $romdir/supersu/
-}		
+}
 rootrem() {
 	cd $prfiles
 	rm -rf $prfiles/root_existing
@@ -6807,7 +6809,7 @@ rootrem() {
 	fi
 	if [[ -f "$romdir/system/etc/install-recovery_original.sh" ]]; then
 		mv $romdir/system/etc/install-recovery_original.sh $romdir/system/etc/install-recovery.sh
-	fi		
+	fi
 	if [[ -f "$romdir/system/bin/install-recovery.sh-ku.bak" ]]; then
 		mv $romdir/system/bin/install-recovery.sh-ku.bak $romdir/system/bin/install-recovery.sh
 	fi
@@ -6843,21 +6845,21 @@ rootrem() {
 	elif [[ -f $romdir/system/bin/app_process64.orig ]]; then
 		mv $romdir/system/bin/app_process64.orig $romdir/system/bin/app_process64
 	fi
-	remrootscript=""	
-	cat $tools/root/root_files | while read remrootscript; do 
+	remrootscript=""
+	cat $tools/root/root_files | while read remrootscript; do
 		grep -v "$remrootscript" symlinks.orig > symlinks.orig2
 		mv symlinks.orig2 symlinks.orig
 	done
 	if [[ ! $permtype = "sparse_dat" && ! $permtype = "raw_img" ]]; then
 		remrootscript=""
-		cat $tools/root/root_files | while read remrootscript; do 
+		cat $tools/root/root_files | while read remrootscript; do
 			grep -v "$remrootscript" $permtype > $permtype-2
 			mv $permtype-2 $permtype
 		done
 	fi
 	remrootscript=""
 	cd $romdir/META-INF/com/google/android
-	cat $tools/root/root_files | while read remrootscript; do 
+	cat $tools/root/root_files | while read remrootscript; do
 		grep -v "$remrootscript" updater-script > updater-script2
 		mv updater-script2 updater-script
 	done
@@ -6977,7 +6979,7 @@ update_project() {
 		if [[ $permtype = "" ]]; then
 			api=$(grep "ro.build.version.sdk" $romdir/system/build.prop | cut -d"=" -f2)
 			choice=""
-			while [[ ! ${choice} =~ ^[1-4]+$ ]]; do
+			while [[ ! ${choice} =~ ^[1-4]$ ]]; do
 				banner
 				echo "Which perm type would you like to use?"
 				echo ""
@@ -6995,7 +6997,7 @@ update_project() {
 				echo "4) raw_img"
 				echo ""
 				read -n 1 -p "Please enter your choice:" choice
-			done	
+			done
 			# set_metadata chosen
 			if [[ $choice = "1" ]]; then
 				if [[ ! $api -ge "19" ]]; then
@@ -7131,7 +7133,7 @@ update_project() {
 						return 1
 					fi
 				fi
-			fi	
+			fi
 			cd $prfiles
 			sed 's/--//g' file_contexts | grep "^/system/" | sort > file_contexts2
 			if [[ -f $prfiles/vendorimg ]]; then
@@ -7149,7 +7151,7 @@ update_project() {
 			cat $tools/updater/set_metadata-data | while read line; do
 				line2=$(echo "$line" | gawk '{ print $1 }' | rev | cut -d'"' -f2 | rev)
 				if [[ $(gawk '{ print $1 }' pre_metadata | grep -m 1 "^$line2$") = "$line2" ]]; then
-					context=$(grep -m 1 "^$line2 " pre_metadata | gawk '{ print $2 }')	
+					context=$(grep -m 1 "^$line2 " pre_metadata | gawk '{ print $2 }')
 					grep -m 1 "$line2" $tools/updater/set_metadata-data | sed "s/#CONTEXT/$context/" >> set_metadata
 				elif [[ $(grep -m 1 "^$line2$" all_files.txt) = "$line2" && ! $(echo $line | grep "#CONTEXT") = "" ]]; then
 					grep -m 1 "$line2" $tools/updater/set_metadata-data | sed "s/#CONTEXT/u:object_r:system_file:s0/" >> set_metadata
@@ -7202,7 +7204,7 @@ update_project() {
 			cat assertcustom >> assert
 		fi
 	fi
-	if [[ $(grep "getprop(" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then	
+	if [[ $(grep "getprop(" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
 		sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
 	fi
 	sed -i "s/#SIGNATURE/$signature1/g" $romdir/META-INF/com/google/android/updater-script
@@ -7389,7 +7391,7 @@ if [[ $cyg = "" ]] && [[ ! -x $tools/mkbootimg || ! -x $tools/unpackbootimg || !
 		echo "${redb}${yellowt}${bold}ERROR:$normal"
 		echo "${redt}One or more tools could not be built.$normal"
 		echo ""
-		if [[ ! -f $tools/depbuild ]]; then	
+		if [[ ! -f $tools/depbuild ]]; then
 			echo "${bluet}Installing the following packages may help:"
 			echo ""
 			echo "${yellowt}$debpkg$normal"
@@ -7438,7 +7440,7 @@ if [[ ! $(ls -d */ | grep 'superr_') = "" ]]; then
 				exitk
 			elif [[ $REPLY = "n" ]]; then
 				new_project
-			else 
+			else
 				export romname="$project"
 			fi
 		done
@@ -7484,7 +7486,7 @@ else
 fi
 isfullrom
 choice=""
-while [[ ! ${choice} =~ ^[1-8]+$ ]] && [[ ! $choice = "q" ]]; do
+while [[ ! ${choice} =~ ^[1-8]$ ]] && [[ ! $choice = "q" ]]; do
 	banner
 	if [[ ! $(ls -d */ | grep 'superr_') = "" ]]; then
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
