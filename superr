@@ -18,7 +18,7 @@ assert_devices() {
 	else
 		assertdir="$prfiles"
 	fi
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	if [[ $(grep -o "#ASSERT" updater-script) = "" ]]; then
 		sed -i '1i#ASSERT' updater-script
 	fi
@@ -109,7 +109,7 @@ assert_devices() {
 		cat $tools/updater/custom/assert >> assert
 		cat $tools/updater/custom/abort >> assert
 		sed -i "s/#DEVICENAME/$devicename/g" assert
-		sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
+		sed -i '/#ASSERT/ r assert' $usdir/updater-script
 		assertch=""
 		rom_tools
 		return 1
@@ -129,7 +129,7 @@ assert_devices() {
 		mv assert-2 assert
 		cat assertcustom >> assert
 	fi
-	sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
+	sed -i '/#ASSERT/ r assert' $usdir/updater-script
 	assertch=""
 }
 boot_dmverity() {
@@ -689,18 +689,18 @@ boot_tools() {
 			mv $romdir/META-INF $romdir/META-INF1
 		fi
 		cp -r $tools/updater/META-INF $romdir/META-INF
-		rm -rf $romdir/META-INF/com/google/android/updater-script
+		rm -rf $usdir/updater-script
 		if [[ $chosenimg = "recovery" ]]; then
 			signature2=$(echo "$signature-recovery")
 			signature3=$(echo "$signature1 Recovery")
-			cp $tools/updater/custom/updater-script-recovery $romdir/META-INF/com/google/android/updater-script
+			cp $tools/updater/custom/updater-script-recovery $usdir/updater-script
 		elif [[ $chosenimg = "boot" ]]; then
 			signature2=$(echo "$signature-kernel")
 			signature3=$(echo "$signature1 Kernel")
 			if [[ -d $romdir/system/etc/init.d ]]; then
-				cp $tools/updater/custom/updater-script-kernel-init $romdir/META-INF/com/google/android/updater-script
+				cp $tools/updater/custom/updater-script-kernel-init $usdir/updater-script
 			else
-				cp $tools/updater/custom/updater-script-kernel $romdir/META-INF/com/google/android/updater-script
+				cp $tools/updater/custom/updater-script-kernel $usdir/updater-script
 			fi
 		fi
 		part_setup
@@ -713,12 +713,12 @@ boot_tools() {
 			assert_devices
 		else
 			cd $prfiles
-			sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
+			sed -i '/#ASSERT/ r assert' $usdir/updater-script
 		fi
-		grep -v "#ASSERT" $romdir/META-INF/com/google/android/updater-script > $romdir/META-INF/com/google/android/updater-script2
-		mv $romdir/META-INF/com/google/android/updater-script2 $romdir/META-INF/com/google/android/updater-script
-		sed -i "s/#SIGNATURE/$signature3/g" $romdir/META-INF/com/google/android/updater-script
-		sed -i "s/#DEVICENAME/$devicename/g" $romdir/META-INF/com/google/android/updater-script
+		grep -v "#ASSERT" $usdir/updater-script > $usdir/updater-script2
+		mv $usdir/updater-script2 $usdir/updater-script
+		sed -i "s/#SIGNATURE/$signature3/g" $usdir/updater-script
+		sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
 		banner
 		if [[ $chosenimg = "recovery" ]]; then
 			echo "${bluet}Building $signature2.zip in $romname ...$normal"
@@ -961,8 +961,8 @@ build_custom_zip() {
 			mv $romdir/META-INF $romdir/META-INF1
 		fi
 		cp -r $tools/updater/META-INF $romdir/META-INF
-		rm -rf $romdir/META-INF/com/google/android/updater-script
-		cp $tools/updater/custom/updater-script-system $romdir/META-INF/com/google/android/updater-script
+		rm -rf $usdir/updater-script
+		cp $tools/updater/custom/updater-script-system $usdir/updater-script
 		chosenimg="boot"
 		part_setup
 		if [[ ! -f assert ]]; then
@@ -972,12 +972,12 @@ build_custom_zip() {
 			assertch="1"
 			assert_devices
 		else
-			sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
+			sed -i '/#ASSERT/ r assert' $usdir/updater-script
 		fi
-		grep -v "#ASSERT" $romdir/META-INF/com/google/android/updater-script > $romdir/META-INF/com/google/android/updater-script2
-		mv $romdir/META-INF/com/google/android/updater-script2 $romdir/META-INF/com/google/android/updater-script
-		sed -i "s/#SIGNATURE/$signature1/g" $romdir/META-INF/com/google/android/updater-script
-		sed -i "s/#DEVICENAME/$devicename/g" $romdir/META-INF/com/google/android/updater-script
+		grep -v "#ASSERT" $usdir/updater-script > $usdir/updater-script2
+		mv $usdir/updater-script2 $usdir/updater-script
+		sed -i "s/#SIGNATURE/$signature1/g" $usdir/updater-script
+		sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
 		if [[ $choice = "1" || $choice = "2" || $choice = "4" ]]; then
 			cd $romdir
 			find system vendor 2>/dev/null | sed 's/^/\//' | sort > $prfiles/all_files.txt
@@ -1005,9 +1005,9 @@ build_custom_zip() {
 			grep "/system/app/\|/system/priv-app/" symlinks | sort >> symlinks_lib
 			sed -i '1iui_print(\"\");' symlinks_lib
 			sed -i '1iui_print(\"Creating symlinks...\");' symlinks_lib
-			sed -i '/#SYM/ r symlinks_lib' $romdir/META-INF/com/google/android/updater-script
+			sed -i '/#SYM/ r symlinks_lib' $usdir/updater-script
 			rm -rf symlinks_lib
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			grep -v "#SYM" updater-script > updater-script2
 			mv updater-script2 updater-script
 			if [[ -d $romdir/system/app || -d $romdir/system/priv-app ]]; then
@@ -1030,7 +1030,7 @@ build_custom_zip() {
 				return 1
 			fi
 		else
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			grep -v "#SYM" updater-script > updater-script2
 			mv updater-script2 updater-script
 		fi
@@ -1040,7 +1040,7 @@ build_custom_zip() {
 			if [[ ! $isframe = "" && ! $isapp = "" && ! $isprivapp = "" ]]; then
 				signature2=$(echo "$signature-afp")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/lib\"\|\"/system/media\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1071,7 +1071,7 @@ build_custom_zip() {
 			if [[ ! $isframe = "" && ! $isapp = "" && ! $isprivapp = "" && ! $islib = "" ]]; then
 				signature2=$(echo "$signature-aflp")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/media\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1102,7 +1102,7 @@ build_custom_zip() {
 			if [[ ! $isframe = "" ]]; then
 				signature2=$(echo "$signature-framework")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/app\"\|\"/system/lib\"\|\"/system/media\"\|\"/system/priv-app\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1133,7 +1133,7 @@ build_custom_zip() {
 			if [[ ! $isapp = "" || ! $isprivapp = "" ]]; then
 				signature2=$(echo "$signature-ap")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/framework\"\|\"/system/lib\"\|\"/system/media\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1164,7 +1164,7 @@ build_custom_zip() {
 			if [[ ! $islib = "" ]]; then
 				signature2=$(echo "$signature-lib")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/app\"\|\"/system/framework\"\|\"/system/media\"\|\"/system/priv-app\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1195,7 +1195,7 @@ build_custom_zip() {
 			if [[ ! $ismedia = "" ]]; then
 				signature2=$(echo "$signature-media")
 				echo "${bluet}Building $signature2.zip in $romname ...$normal"
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				grep -v "\"/system/app\"\|\"/system/framework\"\|\"/system/lib\"\|\"/system/priv-app\"" updater-script > updater-script2
 				mv updater-script2 updater-script
 				cd $romdir
@@ -1316,11 +1316,11 @@ build_rom_zip() {
 		fi
 		whatimg="system"
 		findimgsize
-		if [[ ! $(grep "vendor.transfer" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "vendor.transfer" $usdir/updater-script) = "" ]]; then
 			whatimg="vendor"
 			findimgsize
 		fi
-		if [[ ! $(grep "data.transfer" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "data.transfer" $usdir/updater-script) = "" ]]; then
 			if [[ ! -f $prfiles/data-set_metadata ]]; then
 				whatimg="data"
 				findimgsize
@@ -1329,12 +1329,12 @@ build_rom_zip() {
 		whatpart="system"
 		partimg
 		partsdat
-		if [[ ! $(grep "vendor.transfer" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "vendor.transfer" $usdir/updater-script) = "" ]]; then
 			whatpart="vendor"
 			partimg
 			partsdat
 		fi
-		if [[ ! $(grep "data.transfer" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "data.transfer" $usdir/updater-script) = "" ]]; then
 			if [[ ! -f $prfiles/data-set_metadata ]]; then
 				whatpart="data"
 				partimg
@@ -1374,11 +1374,11 @@ build_rom_zip() {
 		fi
 		whatimg="system"
 		findimgsize
-		if [[ ! $(grep "\"/vendor\"" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "\"/vendor\"" $usdir/updater-script) = "" ]]; then
 			whatimg="vendor"
 			findimgsize
 		fi
-		if [[ ! $(grep "\"/data\"" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "\"/data\"" $usdir/updater-script) = "" ]]; then
 			if [[ ! -f $prfiles/data-set_metadata ]]; then
 				whatimg="data"
 				findimgsize
@@ -1387,11 +1387,11 @@ build_rom_zip() {
 		banner
 		whatpart="system"
 		partimg
-		if [[ ! $(grep "\"/vendor\"" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "\"/vendor\"" $usdir/updater-script) = "" ]]; then
 			whatpart="vendor"
 			partimg
 		fi
-		if [[ ! $(grep "\"/data\"" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+		if [[ ! $(grep "\"/data\"" $usdir/updater-script) = "" ]]; then
 			if [[ ! -f $prfiles/data-set_metadata ]]; then
 				whatpart="data"
 				partimg
@@ -1626,8 +1626,8 @@ change_permtype() {
 	fi
 	banner
 	echo "${bluet}Checking symlinks ...$normal"
-	if [[ ! -f $prfiles/symlinks && ! $(grep ^symlink $romdir/META-INF/com/google/android/updater-script 2>/dev/null) = "" ]]; then
-		cd $romdir/META-INF/com/google/android
+	if [[ ! -f $prfiles/symlinks && ! $(grep ^symlink $usdir/updater-script 2>/dev/null) = "" ]]; then
+		cd $usdir
 		get_symlinks
 	elif [[ ! -f $prfiles/symlinks && ! $(find $romdir/system $romdir/vendor -type l 2>/dev/null) = "" ]]; then
 		cd $romdir
@@ -1668,7 +1668,7 @@ change_permtype() {
 			cp -r $tools/updater/META-INF $romdir
 		fi
 		if [[ -s $prfiles/$permtype ]]; then
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			permtest=$(gawk '/#PERM/,/set_progress/' updater-script | grep $permtype)
 			if [[ ! $permtest = "" ]]; then
 				grep -v "$permtest" updater-script > updater-script2
@@ -1696,7 +1696,7 @@ change_permtype() {
 			cp -r $tools/updater/META-INF $romdir
 		fi
 		if [[ -s $prfiles/$permtype ]]; then
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			permtest=$(gawk '/#PERM/,/set_progress/' updater-script | grep $permtype)
 			if [[ ! $permtest = "" ]]; then
 				grep -v "$permtest" updater-script > updater-script2
@@ -1742,7 +1742,7 @@ change_permtype() {
 		echo "${bluet}Changing perm type ...$normal"
 		rm -rf $romdir/META-INF
 		cp -r $tools/updater/META-INF-IMG/META-INF $romdir/
-		cp $tools/updater/META-INF/com/google/android/update-binary $romdir/META-INF/com/google/android/
+		cp $tools/updater/META-INF/com/google/android/update-binary $usdir/
 		cd $prfiles
 		rm -rf permtype set_metadata set_perm
 		permtype="raw_img"
@@ -1814,7 +1814,7 @@ data_app() {
 	mkdir -p $romdir/data/app
 }
 data_apprem() {
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	grep -v "\"\/data\"\|\"\/data\/app\"\|Extracting data\|#DATA\|data.transfer\|data_new.img\|#DATA" updater-script > updater-script2
 	mv updater-script2 updater-script
 	rm -f $prfiles/data-*
@@ -4974,11 +4974,11 @@ extract_new() {
 			rm -rf $romdir/META-INF/*.MF
 			rm -rf $romdir/META-INF/com/android
 			deviceloc=""
-			if [[ -f $romdir/system/build.prop && -f $romdir/META-INF/com/google/android/updater-script ]]; then
+			if [[ -f $romdir/system/build.prop && -f $usdir/updater-script ]]; then
 				get_devicename
 				mkdir -p $base/tools/devices/$devicename
 				deviceloc=$base/tools/devices/$devicename
-				cd $romdir/META-INF/com/google/android
+				cd $usdir
 				if [[ ! -f $deviceloc/superr_byname ]]; then
 					mountck=$(grep "/system" updater-script | grep -m 1 "^mount" | gawk '{ print $3 }' | sed 's/\"//g; s/\/system//g; s/\,//g; s:\/:\\/:g')
 					if [[ ! $(echo "$mountck" | grep mmcblk) = "" ]]; then
@@ -5817,8 +5817,8 @@ install_cygwin_binaries() {
 	return 1
 }
 isassertdevices() {
-	if [[ -f $romdir/META-INF/com/google/android/updater-script ]]; then
-		assertdevices=$(grep -m 1 abort $romdir/META-INF/com/google/android/updater-script | gawk '{ print $5 }' | sed 's/\"//g' | sed 's/\\//g')
+	if [[ -f $usdir/updater-script ]]; then
+		assertdevices=$(grep -m 1 abort $usdir/updater-script | gawk '{ print $5 }' | sed 's/\"//g' | sed 's/\\//g')
 	fi
 }
 isbusyboxstatus() {
@@ -6215,7 +6215,7 @@ partadd() {
 	fi
 	if [[ ! $partbyname = "" ]]; then
 		if [[ $permtype = "sparse_dat" || $permtype = "raw_img" ]]; then
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			if [[ ! $whatpart = "data" ]]; then
 				gawk 'a=/^mount/{b=1}b&&!a{print "#MOUNT";b=0}1' updater-script > updater-script2
 				mv updater-script2 updater-script
@@ -6266,7 +6266,7 @@ partadd() {
 				sed -i "s/#PARTDATA/$partbyname/" updater-script
 			fi
 		else
-			cd $romdir/META-INF/com/google/android
+			cd $usdir
 			if [[ ! $whatpart = "data" ]]; then
 				gawk 'a=/^format/{b=1}b&&!a{print "#FORMAT";b=0}1' updater-script > updater-script2
 				mv updater-script2 updater-script
@@ -6377,10 +6377,10 @@ part_setup() {
 	if [[ -f $deviceloc/superr_mmc ]]; then
 		if [[ $chosenimg = "recovery" && ! $(grep "recovery" $deviceloc/superr_mmc) = "" ]]; then
 			mmcrecovery=$(grep "recovery" $deviceloc/superr_mmc | gawk '{ print $1 }')
-			sed -i "s/#BYNAME\/recovery/$mmcrecovery/g" $romdir/META-INF/com/google/android/updater-script
+			sed -i "s/#BYNAME\/recovery/$mmcrecovery/g" $usdir/updater-script
 		elif [[ $chosenimg = "boot" && ! $(grep "boot" $deviceloc/superr_mmc) = "" ]]; then
 			mmcboot=$(grep "boot" $deviceloc/superr_mmc | gawk '{ print $1 }')
-			sed -i "s/#BYNAME\/boot/$mmcboot/g" $romdir/META-INF/com/google/android/updater-script
+			sed -i "s/#BYNAME\/boot/$mmcboot/g" $usdir/updater-script
 		else
 			banner
 			echo "$redb$yellowt${bold}WARNING:$normal"
@@ -6392,18 +6392,18 @@ part_setup() {
 			read -p "Press ENTER to continue"
 		fi
 		mmcsystem=$(grep "system" $deviceloc/superr_mmc | gawk '{ print $1 }')
-		sed -i "s/#BYNAME\/system/$mmcsystem/g" $romdir/META-INF/com/google/android/updater-script
+		sed -i "s/#BYNAME\/system/$mmcsystem/g" $usdir/updater-script
 	else
 		if [[ -f $deviceloc/superr_capbyname ]]; then
-			sed -i "s/#BYNAME\/system/#BYNAME\/SYSTEM/g" $romdir/META-INF/com/google/android/updater-script
-			sed -i "s/#BYNAME\/boot/#BYNAME\/BOOT/g" $romdir/META-INF/com/google/android/updater-script
-			sed -i "s/#BYNAME\/recovery/#BYNAME\/RECOVERY/g" $romdir/META-INF/com/google/android/updater-script
+			sed -i "s/#BYNAME\/system/#BYNAME\/SYSTEM/g" $usdir/updater-script
+			sed -i "s/#BYNAME\/boot/#BYNAME\/BOOT/g" $usdir/updater-script
+			sed -i "s/#BYNAME\/recovery/#BYNAME\/RECOVERY/g" $usdir/updater-script
 		elif [[ -f $deviceloc/superr_appbyname ]]; then
-			sed -i "s/#BYNAME\/system/#BYNAME\/APP/g" $romdir/META-INF/com/google/android/updater-script
-			sed -i "s/#BYNAME\/boot/#BYNAME\/LNX/g" $romdir/META-INF/com/google/android/updater-script
-			sed -i "s/#BYNAME\/recovery/#BYNAME\/SOS/g" $romdir/META-INF/com/google/android/updater-script
+			sed -i "s/#BYNAME\/system/#BYNAME\/APP/g" $usdir/updater-script
+			sed -i "s/#BYNAME\/boot/#BYNAME\/LNX/g" $usdir/updater-script
+			sed -i "s/#BYNAME\/recovery/#BYNAME\/SOS/g" $usdir/updater-script
 		fi
-		sed -i "s/#BYNAME/$byname/g" $romdir/META-INF/com/google/android/updater-script
+		sed -i "s/#BYNAME/$byname/g" $usdir/updater-script
 	fi
 }
 pullimga() {
@@ -6758,7 +6758,7 @@ root() {
 		bootext="1"
 		boot_repack
 	fi
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	if [[ ! $(grep -o "#ROOT" updater-script) = "#ROOT" ]]; then
 		if [[ ! $(grep "^set_perm" updater-script) = "" ]]; then
 			gawk 'a=/^set_perm/{b=1}b&&!a{print "#ROOT";b=0}1' updater-script > updater-script2
@@ -6772,7 +6772,7 @@ root() {
 	if [[ ! $(grep "install-recovery.sh" symlinks) = "" ]]; then
 		grep "install-recovery.sh" symlinks >> symunroot
 	fi
-	sed -i "/#ROOT/ r $tools/root/root_prog" $romdir/META-INF/com/google/android/updater-script
+	sed -i "/#ROOT/ r $tools/root/root_prog" $usdir/updater-script
 	supersu=""
 	countroot=""
 	countroot=$(find $tools/root/supersu -name *.zip | wc -l)
@@ -6793,7 +6793,7 @@ root() {
 			fi
 		done
 	fi
-	sed -i "s/#SUPERSU/$supersu/g" $romdir/META-INF/com/google/android/updater-script
+	sed -i "s/#SUPERSU/$supersu/g" $usdir/updater-script
 	mkdir -p $romdir/supersu
 	cp $tools/root/supersu/$supersu $romdir/supersu/
 }
@@ -6858,7 +6858,7 @@ rootrem() {
 		done
 	fi
 	remrootscript=""
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	cat $tools/root/root_files | while read remrootscript; do
 		grep -v "$remrootscript" updater-script > updater-script2
 		mv updater-script2 updater-script
@@ -6869,19 +6869,19 @@ rootrem() {
 	done
 }
 root_busybox() {
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	if [[ ! $(grep -o "#BUSYBOX" updater-script) = "#BUSYBOX" ]]; then
 		gawk '/#ROOT/ && !x {print "#BUSYBOX"; x=1} 1' updater-script > updater-script2
 		mv updater-script2 updater-script
 	fi
-	sed -i "/#BUSYBOX/ r $tools/root/busybox_prog" $romdir/META-INF/com/google/android/updater-script
+	sed -i "/#BUSYBOX/ r $tools/root/busybox_prog" $usdir/updater-script
 	busybox=$(find $tools/root/busybox -name *.zip | rev | cut -d'/' -f1 | rev)
-	sed -i "s/#BUSYBOX1/$busybox/g" $romdir/META-INF/com/google/android/updater-script
+	sed -i "s/#BUSYBOX1/$busybox/g" $usdir/updater-script
 	mkdir -p $romdir/busybox
 	cp $tools/root/busybox/$busybox $romdir/busybox/
 }
 root_busyboxrem() {
-	cd $romdir/META-INF/com/google/android
+	cd $usdir
 	grep -v "Busybox\|/tmp/busybox" updater-script > updater-script2
 	mv updater-script2 updater-script
 	rm -rf $romdir/busybox
@@ -6954,7 +6954,7 @@ update_project() {
 	if [[ -f $prfiles/permtype ]]; then
 		permtype=$(cat $prfiles/permtype)
 	fi
-	if [[ ! $(grep "#SIGNATURE" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+	if [[ ! $(grep "#SIGNATURE" $usdir/updater-script) = "" ]]; then
 		cd $prfiles
 		get_sig
 	fi
@@ -6963,7 +6963,7 @@ update_project() {
 	find system vendor 2>/dev/null | sed 's/^/\//' | sort > $prfiles/all_files.txt
 	sed -i '/^$/d' $prfiles/all_files.txt
 	if [[ ! $permtype = "sparse_dat" && ! $permtype = "raw_img" ]]; then
-		cd $romdir/META-INF/com/google/android
+		cd $usdir
 		permtype=""
 		if [[ ! -f $prfiles/permtype ]]; then
 			if [[ ! $(grep "^set_metadata" updater-script | grep -v "/tmp/") = "" && $(grep "system.new.dat\|system_new" updater-script) = "" ]]; then
@@ -7038,7 +7038,7 @@ update_project() {
 				rm -rf $romdir/META-INF
 				cd $tools/updater
 				cp -r $tools/updater/META-INF-IMG/META-INF $romdir/
-				cp $tools/updater/META-INF/com/google/android/update-binary $romdir/META-INF/com/google/android/
+				cp $tools/updater/META-INF/com/google/android/update-binary $usdir/
 				cd $prfiles
 				rm -rf permtype set_metadata set_perm
 				permtype="raw_img"
@@ -7054,7 +7054,7 @@ update_project() {
 		fi
 		banner
 		echo "${bluet}Preparing updater-script ...$normal"
-		cd $romdir/META-INF/com/google/android
+		cd $usdir
 		if [[ $(grep -o "#ASSERT" updater-script) = "" ]]; then
 			sed -i '1i#ASSERT' updater-script
 			grep "getprop(" updater-script > $prfiles/assert_original
@@ -7204,14 +7204,14 @@ update_project() {
 			cat assertcustom >> assert
 		fi
 	fi
-	if [[ $(grep "getprop(" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
-		sed -i '/#ASSERT/ r assert' $romdir/META-INF/com/google/android/updater-script
+	if [[ $(grep "getprop(" $usdir/updater-script) = "" ]]; then
+		sed -i '/#ASSERT/ r assert' $usdir/updater-script
 	fi
-	sed -i "s/#SIGNATURE/$signature1/g" $romdir/META-INF/com/google/android/updater-script
-	sed -i "s/#DEVICENAME/$devicename/g" $romdir/META-INF/com/google/android/updater-script
-	sed -i '/#SYM/ r symlinks' $romdir/META-INF/com/google/android/updater-script
-	sed -i "/#PERM/ r $permtype" $romdir/META-INF/com/google/android/updater-script
-	if [[ -f $prfiles/vendorimg && $(grep "\"\/vendor\");" $romdir/META-INF/com/google/android/updater-script) = "" && $(grep "vendor.transfer" $romdir/META-INF/com/google/android/updater-script) = "" ]]; then
+	sed -i "s/#SIGNATURE/$signature1/g" $usdir/updater-script
+	sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
+	sed -i '/#SYM/ r symlinks' $usdir/updater-script
+	sed -i "/#PERM/ r $permtype" $usdir/updater-script
+	if [[ -f $prfiles/vendorimg && $(grep "\"\/vendor\");" $usdir/updater-script) = "" && $(grep "vendor.transfer" $usdir/updater-script) = "" ]]; then
 		whatpart="vendor"
 		partadd
 	fi
@@ -7345,11 +7345,11 @@ if [[ ! -f $tools/depmet ]]; then
 			exitk
 		fi
 	fi
-	if [[ $bashwin = "" ]] && [[ $(which java) = "" || $(java -version 2>&1 | grep "java version\|openjdk version" | cut -d'"' -f2 | cut -c 1,3) -lt "17" ]]; then
+	if [[ $bashwin = "" ]] && [[ $(which java) = "" || $(java -version 2>&1 | grep "java version\|openjdk version" | cut -d'"' -f2 | cut -c 1,3) -lt "18" ]]; then
 		debpkg="default-jre"
 		banner
 		echo "${redb}${yellowt}${bold}MISSING DEPENDENCY:$normal"
-		echo "${redt}You need at least Java 7 to use this kitchen.$normal"
+		echo "${redt}You need at least Java 8 to use this kitchen.$normal"
 		echo ""
 		echo "${bluet}The following package is recommended:"
 		echo ""
@@ -7454,6 +7454,7 @@ prfiles=$base/superr_$romname/00_project_files
 framedir=$base/superr_$romname/system/framework
 appdir=$base/superr_$romname/system/app
 privdir=$base/superr_$romname/system/priv-app
+usdir=$base/superr_$romname/META-INF/com/google/android
 logs=$base/superr_$romname/00_project_files/logs
 if [[ -f $romdir/system/build.prop ]]; then
 	androidversion=$(grep "ro.build.version.release" $romdir/system/build.prop | cut -d"=" -f2)
