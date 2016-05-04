@@ -4877,23 +4877,47 @@ extract_new() {
 		moveoldfiles
 	fi
 	if [[ ! $romzip = "" ]]; then
-		if [[ $($p7z l $romzip | grep "META-INF/com/google/android/updater-script") = "" && $($p7z l $romzip | grep "system.ext4.tar\|tar.md5\|chunk") = "" ]]; then
+		cd $romdir
+		if [[ $($p7z l $romzip | grep "system.ext4.tar\|system.ext4.tar.a\|tar.md5\|chunk\|system\/build.prop\|system.new.dat\|system_new.img\|system.img") = "" ]]; then
 			banner
 			echo "${redb}${yellowt}${bold}WARNING:$normal"
-			echo "${redt}This zip does not contain an updater-script"
-			echo "and will not create a valid ROM base.$normal"
+			echo "${redt}This zip does not contain anything the kitchen"
+			echo "can extract.$normal"
 			echo ""
-			read -n 1 -p "Would you like to continue anyway? y/n  "
-			if [[ ! $REPLY = "y" ]]; then
-				cd $base
-				exec ./superr
-				return 1
-			fi
+			read -p "Press ENTER to return to the main Menu"
+			exec ./superr
+			return 1
 		fi
-		if [[ ! $($p7z l $romdir/$romzip | grep system.new.dat) = "" ]]; then
+		if [[ ! $($p7z l $romzip | grep "META-INF/com/google/android/update-binary") = "" ]]; then
+			$p7z e $romzip META-INF/com/google/android/update-binary 2>/dev/null >> $logs/zip.log
+			if [[ ! $(file update-binary | grep /sbin/sh) = "" ]]; then
+				upbinary="1"
+			fi
+			rm -rf update-binary
+		fi
+		if [[ $upbinary = "1" && ! $($p7z l $romzip | gawk '{ print $6 }' | grep "^system/build.prop") = "" ]]; then
+			banner
+			echo "${bluet}Extracting zip ...$normal"
+			$p7z x $romzip 2>/dev/null >> $logs/zip.log
+			line=""
+			cat $usdir/update-binary | grep "symlink " | while read line; do
+				part2=$(echo "$line" | gawk '{ print $2 }')
+				part3=$(echo "$line" | gawk '{ print $3 }')
+				echo "symlink(\"$part2\", \"$part3\");" >> $prfiles/symlinks
+			done
+			cp $prfiles/symlinks $prfiles/symlinks.orig
+			rm -rf META-INF
+			romzip=""
+			cp -r $tools/updater/META-INF META-INF
+			get_devicename
+			if [[ ! -d $base/tools/devices/$devicename ]]; then
+				mkdir -p $base/tools/devices/$devicename
+			fi
+			deviceloc=$base/tools/devices/$devicename
+			update_project
+		elif [[ ! $($p7z l $romzip | grep system.new.dat) = "" ]]; then
 			banner
 			echo "${bluet}Extracting system.new.dat, system.transfer.list, and boot.img ...$normal"
-			cd $romdir
 			$p7z e $romzip system.new.dat system.transfer.list vendor.new.dat vendor.transfer.list boot.img 2>/dev/null >> $logs/zip.log
 			banner
 			echo "${bluet}Converting to system.img ...$normal"
@@ -4906,13 +4930,12 @@ extract_new() {
 			fi
 			romzip=""
 			romimg="system.img"
-		elif [[ ! $($p7z l $romdir/$romzip | grep "system_new.img\|system.img$") = "" ]]; then
+		elif [[ ! $($p7z l $romzip | grep "system_new.img\|system.img$") = "" ]]; then
 			banner
 			echo "${bluet}Extracting images from zip ...$normal"
 			if [[ -f system.img ]]; then
 				mv system.img system_old.img
 			fi
-			cd $romdir
 			$p7z e $romzip system_new.img system.img vendor_new.img vendor.img boot.img 2>/dev/null >> $logs/zip.log
 			if [[ -f system_new.img ]]; then
 				mv system_new.img system.img
