@@ -77,10 +77,12 @@ assert_devices() {
 		cat $tools/updater/custom/assert >> assert
 		firstdevice=$(head -1 assertdevice)
 		sed -i "s/#DEVICENAME/$firstdevice/g" assert
+		sed -i "s/#DEVICECHK/$devicechk/g" assert
 		cat assertdevice | while read line; do
 			if [[ $(grep -o "\"$line\"" assert) = "" ]]; then
 				cat $tools/updater/custom/device >> assert
 				sed -i "s/#DEVICENAME/$line/g" assert
+				sed -i "s/#DEVICECHK/$devicechk/g" assert
 			fi
 		done
 		cat $tools/updater/custom/abort2 >> assert
@@ -109,6 +111,7 @@ assert_devices() {
 		cat $tools/updater/custom/assert >> assert
 		cat $tools/updater/custom/abort >> assert
 		sed -i "s/#DEVICENAME/$devicename/g" assert
+		sed -i "s/#DEVICECHK/$devicechk/g" assert
 		sed -i '/#ASSERT/ r assert' $usdir/updater-script
 		assertch=""
 		rom_tools
@@ -709,6 +712,7 @@ boot_tools() {
 			cat $tools/updater/custom/assert >> assert
 			cat $tools/updater/custom/abort >> assert
 			sed -i "s/#DEVICENAME/$devicename/g" assert
+			sed -i "s/#DEVICECHK/$devicechk/g" assert
 			assertch="1"
 			assert_devices
 		else
@@ -719,6 +723,7 @@ boot_tools() {
 		mv $usdir/updater-script2 $usdir/updater-script
 		sed -i "s/#SIGNATURE/$signature3/g" $usdir/updater-script
 		sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
+		sed -i "s/#DEVICECHK/$devicechk/g" $usdir/updater-script
 		banner
 		if [[ $chosenimg = "recovery" ]]; then
 			echo "${bluet}Building $signature2.zip in $romname ...$normal"
@@ -969,6 +974,7 @@ build_custom_zip() {
 			cat $tools/updater/custom/assert >> assert
 			cat $tools/updater/custom/abort >> assert
 			sed -i "s/#DEVICENAME/$devicename/g" assert
+			sed -i "s/#DEVICECHK/$devicechk/g" assert
 			assertch="1"
 			assert_devices
 		else
@@ -978,6 +984,7 @@ build_custom_zip() {
 		mv $usdir/updater-script2 $usdir/updater-script
 		sed -i "s/#SIGNATURE/$signature1/g" $usdir/updater-script
 		sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
+		sed -i "s/#DEVICECHK/$devicechk/g" $usdir/updater-script
 		if [[ $choice = "1" || $choice = "2" || $choice = "4" ]]; then
 			cd $romdir
 			find system vendor 2>/dev/null | sed 's/^/\//' | sort > $prfiles/all_files.txt
@@ -5500,15 +5507,15 @@ get_byname() {
 			cd $romdir/bootimg/ramdisk
 			findfstab
 			if [[ ! $(${usesudo}grep "by-name/system" $fstab) = "" ]]; then
-				${usesudo}grep "by-name/system" $fstab | gawk '{ print $1 }' | sed 's/\/system//' > $deviceloc/superr_byname2
+				${usesudo}grep "by-name/system" $fstab | grep -v "#" | gawk '{ print $1 }' | sed 's/\/system//' > $deviceloc/superr_byname2
 			elif [[ ! $(${usesudo}grep "by-name/SYSTEM" $fstab) = "" ]]; then
-				${usesudo}grep "by-name/SYSTEM" $fstab | gawk '{ print $1 }' | sed 's/\/SYSTEM//' > $deviceloc/superr_byname2
+				${usesudo}grep "by-name/SYSTEM" $fstab | grep -v "#" | gawk '{ print $1 }' | sed 's/\/SYSTEM//' > $deviceloc/superr_byname2
 				touch $deviceloc/superr_capbyname
 			elif [[ ! $(${usesudo}grep "by-name/APP" $fstab) = "" ]]; then
-				${usesudo}grep "by-name/APP" $fstab | gawk '{ print $1 }' | sed 's/\/APP//' > $deviceloc/superr_byname2
+				${usesudo}grep "by-name/APP" $fstab | grep -v "#" | gawk '{ print $1 }' | sed 's/\/APP//' > $deviceloc/superr_byname2
 				touch $deviceloc/superr_appbyname
 			elif [[ ! $(${usesudo}grep "by-name/userdata" $fstab) = "" ]]; then
-				${usesudo}grep "by-name/userdata" $fstab | gawk '{ print $1 }' | sed 's/\/userdata//' > $deviceloc/superr_byname2
+				${usesudo}grep "by-name/userdata" $fstab | grep -v "#" | gawk '{ print $1 }' | sed 's/\/userdata//' > $deviceloc/superr_byname2
 			fi
 			sed -i 's:/:\\/:g' $deviceloc/superr_byname2
 			mv $deviceloc/superr_byname2 $deviceloc/superr_byname
@@ -5622,14 +5629,24 @@ get_devicename() {
 	if [[ -f $romdir/system/build.prop ]]; then
 		if [[ ! $(grep "ro.product.device=" $romdir/system/build.prop) = "" ]]; then
 			devicename=$(grep "ro.product.device=" $romdir/system/build.prop | cut -d"=" -f2)
+			devicechk="ro.product.device"
+		elif [[ ! $(grep "ro.build.product=" $romdir/system/build.prop) = "" ]]; then
+			devicename=$(grep "ro.build.product=" $romdir/system/build.prop | cut -d"=" -f2)
+			devicechk="ro.build.product"
 		elif [[ ! $(grep "ro.product.name=" $romdir/system/build.prop) = "" ]]; then
 			devicename=$(grep "ro.product.name=" $romdir/system/build.prop | cut -d"=" -f2)
+			devicechk="ro.product.name"
 		fi
 	elif [[ -f $romdir/build.prop ]]; then
 		if [[ ! $(grep "ro.product.device=" $romdir/build.prop) = "" ]]; then
 			devicename=$(grep "ro.product.device=" $romdir/build.prop | cut -d"=" -f2)
+			devicechk="ro.product.device"
+		elif [[ ! $(grep "ro.build.product=" $romdir/build.prop) = "" ]]; then
+			devicename=$(grep "ro.build.product=" $romdir/build.prop | cut -d"=" -f2)
+			devicechk="ro.build.product"
 		elif [[ ! $(grep "ro.product.name=" $romdir/build.prop) = "" ]]; then
 			devicename=$(grep "ro.product.name=" $romdir/build.prop | cut -d"=" -f2)
+			devicechk="ro.product.name"
 		fi
 	fi
 }
@@ -7221,6 +7238,7 @@ update_project() {
 		cat $tools/updater/custom/assert >> assert
 		cat $tools/updater/custom/abort >> assert
 		sed -i "s/#DEVICENAME/$devicename/g" assert
+		sed -i "s/#DEVICECHK/$devicechk/g" assert
 		if [[ -f assertcustom ]]; then
 			grep "ro.product.device" assert > assert-2
 			mv assert-2 assert
@@ -7232,6 +7250,7 @@ update_project() {
 	fi
 	sed -i "s/#SIGNATURE/$signature1/g" $usdir/updater-script
 	sed -i "s/#DEVICENAME/$devicename/g" $usdir/updater-script
+	sed -i "s/#DEVICECHK/$devicechk/g" $usdir/updater-script
 	sed -i '/#SYM/ r symlinks' $usdir/updater-script
 	sed -i "/#PERM/ r $permtype" $usdir/updater-script
 	if [[ -f $prfiles/vendorimg && $(grep "\"\/vendor\");" $usdir/updater-script) = "" && $(grep "vendor.transfer" $usdir/updater-script) = "" ]]; then
