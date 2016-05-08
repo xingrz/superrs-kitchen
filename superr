@@ -1274,8 +1274,14 @@ build_rom_zip() {
 			dozipalign
 		fi
 	fi
-	bdisplay=$(grep "ro.build.display.id" $romdir/system/build.prop | sed 's/\./\\./g; s:/:\\/:g; s/\,/\\,/g; s/\ /\\ /g')
-	sed -i "s/$bdisplay/ro\.build\.display\.id=Built\.with\.SuperRs\.Kitchen/" $romdir/system/build.prop
+	if [[ ! $(grep "ro.build.display.id" $romdir/system/build.prop) = "" ]]; then
+		displayid="ro.build.display.id"
+	elif [[ ! $(grep "ro.build.id" $romdir/system/build.prop) = "" ]]; then
+		displayid="ro.build.id"
+	fi
+	displayid2=$(echo "$displayid" | sed 's/\./\\./g')
+	bdisplay=$(grep "$displayid" $romdir/system/build.prop | sed 's/\./\\./g; s:/:\\/:g; s/\,/\\,/g; s/\ /\\ /g')
+	sed -i "s/$bdisplay/$displayid2=Built\.with\.SuperRs\.Kitchen/" $romdir/system/build.prop
 	update_project
 	cd $prfiles
 	get_sig
