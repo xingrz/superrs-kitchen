@@ -434,6 +434,41 @@ boot_repack() {
 	bootext=""
 	return 1
 }
+boot_sud() {
+	if [[ $rootstatus = "Yes" ]]; then
+		if [[ ! $sudstatus = "Yes" ]]; then
+			banner
+			read -n 1 -p "Would you like to add su.d to your rom?  y/n  " reply
+			if [[ ! $reply = "y" ]]; then
+				boot_tools
+				return 1
+			fi
+			mkdir -p $romdir/system/su.d
+			sed -i 's/#ROOT/#SUD\n#ROOT/' $usdir/updater-script
+			sed -i "/#SUD/ r $tools/boot/sud_perms" $usdir/updater-script
+		else
+			banner
+			read -n 1 -p "Would you like to remove su.d support?  y/n  " reply
+			if [[ ! $reply = "y" ]]; then
+				boot_tools
+				return 1
+			fi
+			rm -rf $romdir/system/su.d
+			grep -v "#SUD\|su\.d" $usdir/updater-script > $usdir/updater-script2
+			mv $usdir/updater-script2 $usdir/updater-script
+		fi
+	else
+		banner
+		echo "$redb$yellowt${bold}ERROR:$normal"
+		echo "${redt}You must add root before adding su.d$normal"
+		echo ""
+		read -p "Press ENTER to return to Boot Tools"
+		boot_tools
+		return 1
+	fi
+	boot_tools
+	return 1
+}
 boot_tools() {
 	banner
 	echo "${bluet}Checking status ...$normal"
@@ -446,6 +481,8 @@ boot_tools() {
 	initdstatus=""
 	insecurestatus1=""
 	initdstatus1=""
+	sudstatus=""
+	sudstatus1=""
 	islg=""
 	if [[ -f $romdir/system/build.prop ]]; then
 		api=$(grep "ro.build.version.sdk" $romdir/system/build.prop | cut -d"=" -f2)
@@ -497,6 +534,8 @@ boot_tools() {
 	isdmverity
 	isforcee
 	isinitd
+	issud
+	isrootstatus
 	isinsecure
 	chosenimg=""
 	choice=""
@@ -543,7 +582,7 @@ boot_tools() {
 	fi
 	if [[ -d $romdir/${chosenimg}img ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-6]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-7]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -554,9 +593,10 @@ boot_tools() {
 			echo "2) Pack ${chosenimg}.img, keep ramdisk"
 			if [[ $chosenimg = "boot" ]]; then
 				echo "3) Add/Remove init.d support (${bluet}CURRENT: $initdstatus1$normal)"
-				echo "4) Insecure/Secure the boot.img (${bluet}CURRENT: $insecurestatus1$normal)"
-				echo "5) Remove dm-verity (${bluet}CURRENT: $dmveritystatus1$normal)"
-				echo "6) Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
+				echo "4) Add/Remove su.d support (${bluet}CURRENT: $sudstatus1$normal)"
+				echo "5) Insecure/Secure the boot.img (${bluet}CURRENT: $insecurestatus1$normal)"
+				echo "6) Remove dm-verity (${bluet}CURRENT: $dmveritystatus1$normal)"
+				echo "7) Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
 			fi
 			echo "${yellowt}m = Main menu"
 			echo "${magentat}q = Quit$normal"
@@ -578,12 +618,16 @@ boot_tools() {
 		elif [[ $choice = "3" ]]; then
 			boot_initd
 			return 1
-		# START Insecure/Secure the boot.img
+		# START Add/Remove su.d support
 		elif [[ $choice = "4" ]]; then
+			boot_sud
+			return 1
+		# START Insecure/Secure the boot.img
+		elif [[ $choice = "5" ]]; then
 			boot_insecure
 			return 1
 		# START Remove dm-verity
-		elif [[ $choice = "5" ]]; then
+		elif [[ $choice = "6" ]]; then
 			cd $romdir/bootimg/ramdisk
 			findfstab
 			if [[ $(${usesudo}grep "verify" $fstab) = "" ]]; then
@@ -603,7 +647,7 @@ boot_tools() {
 			boot_tools
 			return 1
 		# START Remove forceencrypt
-		elif [[ $choice = "6" ]]; then
+		elif [[ $choice = "7" ]]; then
 			cd $romdir/bootimg/ramdisk
 			findfstab
 			if [[ $(${usesudo}grep "forceencrypt" $fstab) = "" ]]; then
@@ -6058,10 +6102,24 @@ isrootstatus() {
 			if [[ ! -f $prfiles/root ]]; then
 				touch $prfiles/root
 			fi
+			rootstatus="Yes"
 			rootstatus1=$(echo "${greent}Rooted${normal}")
 		else
 			rm -rf $prfiles/root
+			rootstatus="No"
 			rootstatus1=$(echo "${redt}No Root${normal}")
+		fi
+	fi
+}
+issud() {
+	if [[ -d $romdir/bootimg/ramdisk ]]; then
+		cd $romdir/bootimg/ramdisk
+		if [[ ! $(${usesudo}grep "su\.d" $usdir/updater-script) = "" && -d $romdir/system/su.d ]]; then
+			sudstatus="Yes"
+			sudstatus1="${greent}Enabled$normal"
+		else
+			sudstatus="No"
+			sudstatus1="${redt}Disabled$normal"
 		fi
 	fi
 }
@@ -7532,8 +7590,7 @@ if [[ -f $romdir/system/build.prop ]]; then
 	fi
 else
 	androidversion=$(
-		echo "${redt}Copy a rom zip, tar/boot.img,"
-		echo "win/boot.win, or system.img/boot.img to the following"
+		echo "${redt}Copy your firmware to the following"
 		echo "directory and choose ${bold}option 4$normal ${redt}to extract it:$normal"
 		echo "$yellowt$base/superr_$romname$normal"
 	)
