@@ -1,4 +1,4 @@
-#** SuperR's Kitchen v1.0.7.2 **#
+#** SuperR's Kitchen v1.0.7.3 **#
 ##by SuperR##
 
 ##**FEATURES**##
@@ -44,7 +44,8 @@
 **Boot features:**
 
 * Unpack/repack boot/recovery img (Big Thanks to @osm0sis for mkbootimg source!!!)  
-* Add/remove init.d support  
+* Add/remove init.d support
+* Add/remove su.d support    
 * Add/remove insecure boot  
 * Remove dm-verity  
 * Remove forceencrypt  

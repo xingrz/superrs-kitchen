@@ -440,7 +440,7 @@ boot_sud() {
 			banner
 			read -n 1 -p "Would you like to add su.d to your rom?  y/n  " reply
 			if [[ ! $reply = "y" ]]; then
-				boot_tools
+				root_tools
 				return 1
 			fi
 			mkdir -p $romdir/system/su.d
@@ -450,7 +450,7 @@ boot_sud() {
 			banner
 			read -n 1 -p "Would you like to remove su.d support?  y/n  " reply
 			if [[ ! $reply = "y" ]]; then
-				boot_tools
+				root_tools
 				return 1
 			fi
 			rm -rf $romdir/system/su.d
@@ -463,10 +463,10 @@ boot_sud() {
 		echo "${redt}You must add root before adding su.d$normal"
 		echo ""
 		read -p "Press ENTER to return to Boot Tools"
-		boot_tools
+		root_tools
 		return 1
 	fi
-	boot_tools
+	root_tools
 	return 1
 }
 boot_tools() {
@@ -481,8 +481,6 @@ boot_tools() {
 	initdstatus=""
 	insecurestatus1=""
 	initdstatus1=""
-	sudstatus=""
-	sudstatus1=""
 	islg=""
 	if [[ -f $romdir/system/build.prop ]]; then
 		api=$(grep "ro.build.version.sdk" $romdir/system/build.prop | cut -d"=" -f2)
@@ -534,8 +532,6 @@ boot_tools() {
 	isdmverity
 	isforcee
 	isinitd
-	issud
-	isrootstatus
 	isinsecure
 	chosenimg=""
 	choice=""
@@ -582,7 +578,7 @@ boot_tools() {
 	fi
 	if [[ -d $romdir/${chosenimg}img ]]; then
 		choice=""
-		while [[ ! ${choice} =~ ^[1-7]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		while [[ ! ${choice} =~ ^[1-6]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
 			echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 			echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -593,10 +589,9 @@ boot_tools() {
 			echo "2) Pack ${chosenimg}.img, keep ramdisk"
 			if [[ $chosenimg = "boot" ]]; then
 				echo "3) Add/Remove init.d support (${bluet}CURRENT: $initdstatus1$normal)"
-				echo "4) Add/Remove su.d support (${bluet}CURRENT: $sudstatus1$normal)"
-				echo "5) Insecure/Secure the boot.img (${bluet}CURRENT: $insecurestatus1$normal)"
-				echo "6) Remove dm-verity (${bluet}CURRENT: $dmveritystatus1$normal)"
-				echo "7) Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
+				echo "4) Insecure/Secure the boot.img (${bluet}CURRENT: $insecurestatus1$normal)"
+				echo "5) Remove dm-verity (${bluet}CURRENT: $dmveritystatus1$normal)"
+				echo "6) Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
 			fi
 			echo "${yellowt}m = Main menu"
 			echo "${magentat}q = Quit$normal"
@@ -618,16 +613,12 @@ boot_tools() {
 		elif [[ $choice = "3" ]]; then
 			boot_initd
 			return 1
-		# START Add/Remove su.d support
-		elif [[ $choice = "4" ]]; then
-			boot_sud
-			return 1
 		# START Insecure/Secure the boot.img
-		elif [[ $choice = "5" ]]; then
+		elif [[ $choice = "4" ]]; then
 			boot_insecure
 			return 1
 		# START Remove dm-verity
-		elif [[ $choice = "6" ]]; then
+		elif [[ $choice = "5" ]]; then
 			cd $romdir/bootimg/ramdisk
 			findfstab
 			if [[ $(${usesudo}grep "verify" $fstab) = "" ]]; then
@@ -647,7 +638,7 @@ boot_tools() {
 			boot_tools
 			return 1
 		# START Remove forceencrypt
-		elif [[ $choice = "7" ]]; then
+		elif [[ $choice = "6" ]]; then
 			cd $romdir/bootimg/ramdisk
 			findfstab
 			if [[ $(${usesudo}grep "forceencrypt" $fstab) = "" ]]; then
@@ -6112,15 +6103,12 @@ isrootstatus() {
 	fi
 }
 issud() {
-	if [[ -d $romdir/bootimg/ramdisk ]]; then
-		cd $romdir/bootimg/ramdisk
-		if [[ ! $(${usesudo}grep "su\.d" $usdir/updater-script) = "" && -d $romdir/system/su.d ]]; then
-			sudstatus="Yes"
-			sudstatus1="${greent}Enabled$normal"
-		else
-			sudstatus="No"
-			sudstatus1="${redt}Disabled$normal"
-		fi
+	if [[ ! $(grep "su\.d" $usdir/updater-script) = "" && -d $romdir/system/su.d ]]; then
+		sudstatus="Yes"
+		sudstatus1="${greent}Enabled$normal"
+	else
+		sudstatus="No"
+		sudstatus1="${redt}Disabled$normal"
 	fi
 }
 kitchen_update() {
@@ -6561,8 +6549,6 @@ rom_tools() {
 	odexstatus1=""
 	dataapp=""
 	dataapp1=""
-	rootstatus=""
-	rootstatus1=""
 	if [[ ! -f $romdir/system/build.prop ]]; then
 		banner
 		echo "${redb}${yellowt}${bold}ERROR:$normal"
@@ -6578,10 +6564,8 @@ rom_tools() {
 		rom_tools
 		return 1
 	fi
-	isbusyboxstatus
 	isdataappstatus
 	isodexstatus
-	isrootstatus
 	permtype=$(cat $prfiles/permtype)
 	debloatstatus1=""
 	if [[ -f $prfiles/debloat_test ]]; then
@@ -6592,7 +6576,7 @@ rom_tools() {
 		fi
 	fi
 	choice=""
-	while [[ ! ${choice} =~ ^[1-8]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+	while [[ ! ${choice} =~ ^[1-7]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 		banner
 		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
 		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
@@ -6604,13 +6588,12 @@ rom_tools() {
 		else
 			echo "${redt}1) Deodex ROM (CURRENT: Not supported$normal)"
 		fi
-		echo "2) Root/Unroot ROM (${bluet}CURRENT: $greent$rootstatus1$normal)"
-		echo "3) Busybox Add/Remove (${bluet}CURRENT: $greent$busyboxstatus1$normal)"
-		echo "4) /data/app support (${bluet}CURRENT: $greent$dataapp1$normal)"
-		echo "5) Change perm type (${bluet}CURRENT: $greent$permtype$normal)"
-		echo "${yellowt}6) Asserts Menu"
-		echo "7) Debloat Menu"
-		echo "8) Build Menu"
+		echo "2) Change perm type (${bluet}CURRENT: $greent$permtype$normal)"
+		echo "3) /data/app support (${bluet}CURRENT: $greent$dataapp1$normal)"
+		echo "${yellowt}4) Root Menu"
+		echo "5) Asserts Menu"
+		echo "6) Debloat Menu"
+		echo "7) Build Menu"
 		echo "m = Main menu"
 		echo "${magentat}q = Quit$normal"
 		echo ""
@@ -6698,75 +6681,12 @@ rom_tools() {
 			deodex_n
 			return 1
 		fi
-	# START Root/Unroot ROM
+	# START Change perm type (set_perm/set_metadata)
 	elif [[ $choice = "2" ]]; then
-		if [[ ! -f $prfiles/root ]]; then
-			banner
-			read -n 1 -p "Should we root the ROM? y/n  "
-			if [[ $REPLY = "y" ]]; then
-				root
-				banner
-				echo "${greent}Root has been added.$normal"
-				echo ""
-				read -p "Press ENTER to return to ROM Tools"
-			fi
-		else
-			banner
-			echo "${greent}You already have root.$normal"
-			echo ""
-			read -n 1 -p "Should we remove it? y/n  "
-			echo ""
-			echo ""
-			if [[ $REPLY = "y" ]]; then
-				rootrem
-				update_project
-				banner
-				echo "${greent}Root has been removed.$normal"
-				echo ""
-				read -p "Press ENTER to return to ROM Tools"
-			fi
-		fi
-		rom_tools
-		return 1
-	# START Busybox Add/Remove
-	elif [[ $choice = "3" ]]; then
-		if [[ ! -f $prfiles/busybox ]]; then
-			if [[ -f $prfiles/root ]]; then
-				banner
-				read -n 1 -p "Should we add Busybox to the ROM? y/n  "
-				if [[ $REPLY = "y" ]]; then
-					root_busybox
-					banner
-					echo "${greent}Busybox has been added.$normal"
-					echo ""
-					read -p "Press ENTER to return to ROM Tools"
-				fi
-			else
-				banner
-				echo "$redb${yellowt}ERROR:$normal"
-				echo "${redt}You must add root first.$normal"
-				echo ""
-				read -p "Press ENTER to return to ROM Tools"
-			fi
-		else
-			banner
-			echo "${greent}You already have Busybox.$normal"
-			echo ""
-			read -n 1 -p "Should we remove it? y/n  "
-			echo ""
-			echo ""
-			if [[ $REPLY = "y" ]]; then
-				root_busyboxrem
-				banner
-				echo "${greent}Busybox has been removed.$normal"
-				echo ""
-				read -p "Press ENTER to return to ROM Tools"
-			fi
-		fi
-		rom_tools
+		change_permtype
 		return 1
 	# START /data/app support
-	elif [[ $choice = "4" ]]; then
+	elif [[ $choice = "3" ]]; then
 		if [[ ! $dataapp = "Yes" ]]; then
 			banner
 			read -n 1 -p "Would you like to add /data/app support? y/n  "
@@ -6804,20 +6724,20 @@ rom_tools() {
 		fi
 		rom_tools
 		return 1
-	# START Change perm type (set_perm/set_metadata)
-	elif [[ $choice = "5" ]]; then
-		change_permtype
+	# START Root Menu
+	elif [[ $choice = "4" ]]; then
+		root_tools
 		return 1
 	# START Asserts: Add/Change devices
-	elif [[ $choice = "6" ]]; then
+	elif [[ $choice = "5" ]]; then
 		assert_devices
 		return 1
 	# START Debloat Menu
-	elif [[ $choice = "7" ]]; then
+	elif [[ $choice = "6" ]]; then
 		debloat_rom
 		return 1
 	# START Build Zip Menu
-	elif [[ $choice = "8" ]]; then
+	elif [[ $choice = "7" ]]; then
 		build_zip
 		return 1
 	# START Main menu
@@ -7003,6 +6923,103 @@ root_busyboxrem() {
 	mv updater-script2 updater-script
 	rm -rf $romdir/busybox
 	rm -rf $romdir/system/xbin/busybox
+}
+root_tools() {
+	rootstatus=""
+	rootstatus1=""
+	sudstatus=""
+	sudstatus1=""
+	isrootstatus
+	isbusyboxstatus
+	issud
+	choice=""
+	while [[ ! ${choice} =~ ^[1-4]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
+		banner
+		echo "${bluet}CURRENT PROJECT: $greent$romname$normal"
+		echo "${bluet}ANDROID VERSION: $greent$androidversion$normal"
+		echo ""
+		echo "${yellowb}${redt}Root Menu$normal"
+		echo ""
+		echo "1) Root/Unroot ROM (${bluet}CURRENT: $greent$rootstatus1$normal)"
+		echo "2) Busybox Add/Remove (${bluet}CURRENT: $greent$busyboxstatus1$normal)"
+		echo "3) Add/Remove su.d support (${bluet}CURRENT: $sudstatus1$normal)"
+		echo "${yellowt}4) ROM Tools Menu"
+		echo "m = Main Menu"
+		echo "${magentat}q = Quit$normal"
+		echo ""
+		read -n 1 -p "Make your selection:  " choice
+	done
+	# START Root/Unroot ROM
+	if [[ $choice = "1" ]]; then
+		if [[ ! -f $prfiles/root ]]; then
+			banner
+			read -n 1 -p "Should we root the ROM? y/n  "
+			if [[ $REPLY = "y" ]]; then
+				root
+				banner
+			fi
+		else
+			banner
+			echo "${greent}You already have root.$normal"
+			echo ""
+			read -n 1 -p "Should we remove it? y/n  "
+			echo ""
+			echo ""
+			if [[ $REPLY = "y" ]]; then
+				rootrem
+				update_project
+			fi
+		fi
+		root_tools
+		return 1
+	# START Busybox Add/Remove
+	elif [[ $choice = "2" ]]; then
+		if [[ ! -f $prfiles/busybox ]]; then
+			if [[ -f $prfiles/root ]]; then
+				banner
+				read -n 1 -p "Should we add Busybox to the ROM? y/n  "
+				if [[ $REPLY = "y" ]]; then
+					root_busybox
+				fi
+			else
+				banner
+				echo "$redb${yellowt}ERROR:$normal"
+				echo "${redt}You must add root first.$normal"
+				echo ""
+				read -p "Press ENTER to return to the Root Menu"
+			fi
+		else
+			banner
+			echo "${greent}You already have Busybox.$normal"
+			echo ""
+			read -n 1 -p "Should we remove it? y/n  "
+			echo ""
+			echo ""
+			if [[ $REPLY = "y" ]]; then
+				root_busyboxrem
+			fi
+		fi
+		root_tools
+		return 1
+	# START Add/Remove su.d support
+	elif [[ $choice = "3" ]]; then
+		boot_sud
+		return 1
+	# START ROM Tools Menu
+	elif [[ $choice = "4" ]]; then
+		rom_tools
+		return 1
+	# START Main menu
+	elif [[ $choice = "m" ]]; then
+		cd $base
+		exec ./superr
+		return 1
+	# START Quit
+	elif [[ $choice = "q" ]]; then
+		echo ""
+		echo ""
+		exitk
+	fi
 }
 signzip() {
 	if [[ ! $bashwin = "" ]]; then
