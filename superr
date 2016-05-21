@@ -4638,11 +4638,13 @@ extract_new() {
 	cd $romdir
 	romzip=""
 	romtar=""
+	rommd5=""
 	romchunk=""
 	romimg=""
 	romwin=""
 	ls | grep .zip$ >> $prfiles/findextract
 	ls | grep .tar$ | grep -m 1 .tar >> $prfiles/findextract
+	ls | grep .tar.md5$ | grep -m 1 .tar.md5 >> $prfiles/findextract
 	ls | grep .win | grep -v boot | grep -m 1 .win >> $prfiles/findextract
 	ls | grep -m 1 chunk >> $prfiles/findextract
 	ls | grep .img$ | grep -v "boot\|recovery\|chunk" >> $prfiles/findextract
@@ -4654,6 +4656,8 @@ extract_new() {
 			romzip=$(cat $prfiles/findextract)
 		elif [[ ! $(grep .tar$ $prfiles/findextract) = "" ]]; then
 			romtar=$(cat $prfiles/findextract)
+		elif [[ ! $(grep .tar.md5$ $prfiles/findextract) = "" ]]; then
+			rommd5=$(cat $prfiles/findextract)
 		elif [[ ! $(grep .win $prfiles/findextract) = "" ]]; then
 			romwin=$(cat $prfiles/findextract)
 		elif [[ ! $(grep chunk $prfiles/findextract) = "" ]]; then
@@ -4673,7 +4677,7 @@ extract_new() {
 		findproject=""
 		findproject=( $(cat $prfiles/findextract) )
 		prchoice="ext"
-		while [[ $romzip = "" && $romtar = "" && $romwin = "" && $romchunk = "" && $romimg = "" && $romtgz = "" ]]; do
+		while [[ $romzip = "" && $romtar = "" && $rommd5 = "" && $romwin = "" && $romchunk = "" && $romimg = "" && $romtgz = "" ]]; do
 			banner
 			echo "${greenb}Extract Options:$normal"
 			echo ""
@@ -4691,6 +4695,8 @@ extract_new() {
 					romzip="$project"
 				elif [[ ! $(echo $project | grep .tar$) = "" ]]; then
 					romtar="$project"
+				elif [[ ! $(echo $project | grep .tar.md5$) = "" ]]; then
+					rommd5="$project"
 				elif [[ ! $(echo $project | grep .win) = "" ]]; then
 					romwin="$project"
 				elif [[ ! $(echo $project | grep chunk) = "" ]]; then
@@ -4714,7 +4720,7 @@ extract_new() {
 			fi
 		done
 	fi
-	if [[ $romzip = "" && $romtar = "" && $romimg = "" && $romwin = "" && $romchunk = "" && $romtgz = "" ]]; then
+	if [[ $romzip = "" && $romtar = "" && $rommd5 = "" && $romimg = "" && $romwin = "" && $romchunk = "" && $romtgz = "" ]]; then
 		choice=""
 		while [[ ! ${choice} =~ ^[1-2]$ ]] && [[ ! $choice = "m" && ! $choice = "q" ]]; do
 			banner
@@ -4922,7 +4928,7 @@ extract_new() {
 		fi
 	fi
 	banner
-	read -n 1 -p "Should we extract $yellowt$romzip$romtar$romimg$romchunk$romwin$romtgz$normal to ${greent}$romname$normal? y/n  "
+	read -n 1 -p "Should we extract $yellowt$romzip$romtar$rommd5$romimg$romchunk$romwin$romtgz$normal to ${greent}$romname$normal? y/n  "
 	echo ""
 	echo ""
 	if [[ ! $REPLY = "y" ]]; then
@@ -5161,6 +5167,26 @@ extract_new() {
 		rm -rf $imagezip $logs/tarlist
 		romtgz=""
 		romimg="system.img"
+	fi
+	if [[ ! $rommd5 = "" ]]; then
+		romnomd5=$(echo "$rommd5" | rev | cut -d"." -f2- | rev)
+		mv $rommd5 $romnomd5
+		if [[ ! $($p7z l $romnomd5 | grep system.img.ext4) = "" ]]; then
+			echo "${bluet}Extracting images ...$normal"
+			$p7z x $romnomd5 system.img.ext4 boot.img 2>&1 > $logs/zip.log
+			mv system.img.ext4 system.img
+			rommd5=""
+			romimg="system.img"
+		else
+			banner
+			echo "${redb}${yellowt}${bold}ERROR:$normal"
+			echo "${redt}There is no system.img.ext4 in your tar.md5 file$normal"
+			echo ""
+			read -p "Press ENTER to return to the main menu"
+			cd $base
+			exec ./superr
+			return 1
+		fi
 	fi
 	if [[ ! $romimg = "" ]]; then
 		romimgdir=$(echo $romimg | rev | cut -d'.' -f2- | rev)
