@@ -160,9 +160,51 @@ boot_dmverity() {
 	fi
 }
 boot_forcee() {
-	banner
-	echo "${bluet}Removing forceencrypt ...$normal"
-	${usesudo}sed -i "s/forceencrypt/encryptable/" $fstab
+	if [[ $forceestatus = "Yes" ]]; then
+		banner
+		read -n 1 -p "Would you like to remove forecencrypt?  y/n  " reply
+		if [[ ! $reply = "y" ]]; then
+			boot_tools
+			return 1
+		fi
+		banner
+		echo "${bluet}Removing forceencrypt ...$normal"
+		line=""
+		${usesudo}cat $fstab | grep "forceencrypt" | while read line; do
+			if [[ ! $(echo "$line" | grep "/data") = "" ]]; then
+				fixedline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g; s/forceencrypt/encryptable/')
+				newline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g')
+				${usesudo}sed -i "s/$newline/$fixedline/" $fstab
+			fi
+		done
+		banner
+		echo "${greent}forceencrypt has been removed.$normal"
+		echo ""
+		read -p "Press ENTER to return to boot menu"
+	else
+		banner
+		read -n 1 -p "Would you like to add forecencrypt?  y/n  " reply
+		if [[ ! $reply = "y" ]]; then
+			boot_tools
+			return 1
+		fi
+		banner
+		echo "${bluet}Adding forceencrypt ...$normal"
+		line=""
+		${usesudo}cat $fstab | grep "encryptable" | while read line; do
+			if [[ ! $(echo "$line" | grep "/data") = "" ]]; then
+				fixedline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g; s/encryptable/forceencrypt/')
+				newline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g')
+				${usesudo}sed -i "s/$newline/$fixedline/" $fstab
+			fi
+		done
+		banner
+		echo "${greent}forceencrypt has been added.$normal"
+		echo ""
+		read -p "Press ENTER to return to boot menu"
+	fi
+	boot_tools
+	return 1
 }
 boot_initd() {
 	if [[ $chosenimg = "recovery" ]]; then
@@ -591,7 +633,7 @@ boot_tools() {
 				echo "3) Add/Remove init.d support (${bluet}CURRENT: $initdstatus1$normal)"
 				echo "4) Insecure/Secure the boot.img (${bluet}CURRENT: $insecurestatus1$normal)"
 				echo "5) Remove dm-verity (${bluet}CURRENT: $dmveritystatus1$normal)"
-				echo "6) Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
+				echo "6) Add/Remove forceencrypt (${bluet}CURRENT: $forceestatus1$normal)"
 			fi
 			echo "${yellowt}m = Main menu"
 			echo "${magentat}q = Quit$normal"
@@ -641,22 +683,7 @@ boot_tools() {
 		elif [[ $choice = "6" ]]; then
 			cd $romdir/bootimg/ramdisk
 			findfstab
-			if [[ $(${usesudo}grep "forceencrypt" $fstab) = "" ]]; then
-				banner
-				echo "${redb}${yellowt}${bold}NOTICE:$normal"
-				echo "${redt}forceencrypt is already disabled.$normal"
-				echo ""
-				read -p "Press ENTER to return to Boot/Recovery menu"
-				boot_tools
-				return 1
-			fi
 			boot_forcee
-			banner
-			echo "${greent}forceencrypt has been removed.$normal"
-			echo ""
-			read -p "Press ENTER to return to boot menu"
-			boot_tools
-			return 1
 		# START Main menu
 		elif [[ $choice = "m" ]]; then
 			cd $base
@@ -6033,7 +6060,7 @@ isforcee() {
 	if [[ -d $romdir/bootimg/ramdisk ]]; then
 		cd $romdir/bootimg/ramdisk
 		findfstab
-		if [[ ! $(${usesudo}grep "forceencrypt" $fstab) = "" ]]; then
+		if [[ ! $(${usesudo}grep "forceencrypt" $fstab | grep "/data") = "" ]]; then
 			forceestatus="Yes"
 			forceestatus1="${redt}Enabled$normal"
 		else
