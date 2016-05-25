@@ -158,6 +158,15 @@ boot_dmverity() {
 	elif [[ ! $(${usesudo}grep "/system" $fstab | grep "verify") = "" ]]; then
 		${usesudo}sed -i '/\/system/s/verify//g' $fstab
 	fi
+	if [[ ! $(${usesudo}grep "/vendor" $fstab | grep ",verify=${byname}\/metadata") = "" ]]; then
+	        ${usesudo}sed -i "/\/vendor/s/,verify=${byname}\/metadata//g" $fstab
+	elif [[ ! $(${usesudo}grep "/vendor" $fstab | grep ",verify=${byname}") = "" ]]; then
+	        ${usesudo}sed -i "/\/vendor/s/,verify=${byname}//g" $fstab
+	elif [[ ! $(${usesudo}grep "/vendor" $fstab | grep ",verify") = "" ]]; then
+	        ${usesudo}sed -i '/\/vendor/s/,verify//g' $fstab
+	elif [[ ! $(${usesudo}grep "/vendor" $fstab | grep "verify") = "" ]]; then
+	        ${usesudo}sed -i '/\/vendor/s/verify//g' $fstab
+	fi
 }
 boot_forcee() {
 	if [[ $forceestatus = "Yes" ]]; then
@@ -5358,7 +5367,7 @@ extract_new() {
 	return 1
 }
 findfstab() {
-		fstab=$(${usesudo}find ! -type l | grep -v "goldfish\|ranchu" | grep -m 1 fstab | sed 's/\.\///')
+		fstab=$(${usesudo}find ! -type l | grep -v "goldfish\|ranchu\|charger" | grep -m 1 fstab | sed 's/\.\///')
 }
 findimgsize() {
 	cd $romdir
