@@ -149,14 +149,14 @@ assert_devices() {
 boot_dmverity() {
 	banner
 	echo "${bluet}Removing dm-verity ...$normal"
-	if [[ ! $(${usesudo}grep ",verify=${byname}\/metadata" $fstab) = "" ]]; then
-		${usesudo}sed -i "s/,verify=${byname}\/metadata//" $fstab
-	elif [[ ! $(${usesudo}grep ",verify=${byname}" $fstab) = "" ]]; then
-		${usesudo}sed -i "s/,verify=${byname}//" $fstab
-	elif [[ ! $(${usesudo}grep ",verify" $fstab) = "" ]]; then
-		${usesudo}sed -i 's/,verify//' $fstab
-	elif [[ ! $(${usesudo}grep "verify" $fstab) = "" ]]; then
-		${usesudo}sed -i 's/verify//' $fstab
+	if [[ ! $(${usesudo}grep "/system" $fstab | grep ",verify=${byname}\/metadata") = "" ]]; then
+		${usesudo}sed -i "/\/system/s/,verify=${byname}\/metadata//g" $fstab
+	elif [[ ! $(${usesudo}grep "/system" $fstab | grep ",verify=${byname}") = "" ]]; then
+		${usesudo}sed -i "/\/system/s/,verify=${byname}//g" $fstab
+	elif [[ ! $(${usesudo}grep "/system" $fstab | grep ",verify") = "" ]]; then
+		${usesudo}sed -i '/\/system/s/,verify//g' $fstab
+	elif [[ ! $(${usesudo}grep "/system" $fstab | grep "verify") = "" ]]; then
+		${usesudo}sed -i '/\/system/s/verify//g' $fstab
 	fi
 }
 boot_forcee() {
@@ -169,14 +169,13 @@ boot_forcee() {
 		fi
 		banner
 		echo "${bluet}Removing forceencrypt ...$normal"
-		line=""
-		${usesudo}cat $fstab | grep "forceencrypt" | while read line; do
-			if [[ ! $(echo "$line" | grep "/data") = "" ]]; then
-				fixedline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g; s/forceencrypt/encryptable/')
-				newline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g')
-				${usesudo}sed -i "s/$newline/$fixedline/" $fstab
-			fi
-		done
+		if [[ ! $(${usesudo}grep "/data" $fstab | grep forceencrypt) = "" ]]; then
+			${usesudo}sed -i '/\/data/s/forceencrypt/encryptable/g' $fstab
+			touch $prfiles/forceencrypt
+		elif [[ ! $(${usesudo}grep "/data" $fstab | grep forcefdeorfbe) = "" ]]; then
+			${usesudo}sed -i '/\/data/s/forcefdeorfbe/encryptable/g' $fstab
+			touch $prfiles/forcefdeorfbe
+		fi
 		banner
 		echo "${greent}forceencrypt has been removed.$normal"
 		echo ""
@@ -190,14 +189,12 @@ boot_forcee() {
 		fi
 		banner
 		echo "${bluet}Adding forceencrypt ...$normal"
-		line=""
-		${usesudo}cat $fstab | grep "encryptable" | while read line; do
-			if [[ ! $(echo "$line" | grep "/data") = "" ]]; then
-				fixedline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g; s/encryptable/forceencrypt/')
-				newline=$(echo "$line" | sed 's:\/:\\/:g; s/ /\\ /g; s/\./\\./g')
-				${usesudo}sed -i "s/$newline/$fixedline/" $fstab
-			fi
-		done
+		if [[ -f $prfiles/forcefdeorfbe ]]; then
+			${usesudo}sed -i '/\/data/s/encryptable/forcefdeorfbe/g' $fstab
+		elif [[ -f $prfiles/forceencrypt ]]; then
+			${usesudo}sed -i '/\/data/s/encryptable/forceencrypt/g' $fstab
+		fi
+		rm -rf $prfiles/forcefdeorfbe $prfiles/forceencrypt
 		banner
 		echo "${greent}forceencrypt has been added.$normal"
 		echo ""
@@ -6060,7 +6057,7 @@ isforcee() {
 	if [[ -d $romdir/bootimg/ramdisk ]]; then
 		cd $romdir/bootimg/ramdisk
 		findfstab
-		if [[ ! $(${usesudo}grep "forceencrypt" $fstab | grep "/data") = "" ]]; then
+		if [[ ! $(${usesudo}grep "forceencrypt\|forcefdeorfbe" $fstab | grep "/data") = "" ]]; then
 			forceestatus="Yes"
 			forceestatus1="${redt}Enabled$normal"
 		else
