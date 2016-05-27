@@ -4677,6 +4677,7 @@ extract_new() {
 	romwin=""
 	ls | grep .zip$ >> $prfiles/findextract
 	ls | grep .tar$ | grep -m 1 .tar >> $prfiles/findextract
+	ls | grep .tar.a$ | grep -m 1 .tar.a >> $prfiles/findextract
 	ls | grep .tar.md5$ | grep -m 1 .tar.md5 >> $prfiles/findextract
 	ls | grep .win | grep -v boot | grep -m 1 .win >> $prfiles/findextract
 	ls | grep -m 1 chunk >> $prfiles/findextract
@@ -4689,6 +4690,11 @@ extract_new() {
 			romzip=$(cat $prfiles/findextract)
 		elif [[ ! $(grep .tar$ $prfiles/findextract) = "" ]]; then
 			romtar=$(cat $prfiles/findextract)
+		elif [[ ! $(grep .tar.a$ $prfiles/findextract) = "" ]]; then
+			romtara=$(ls | grep .tar.a$)
+			romtaratar=$(echo $romtara | sed 's/tar\.a/tar/')
+			mv $romtara $romtaratar
+			romtar="$romtaratar"
 		elif [[ ! $(grep .tar.md5$ $prfiles/findextract) = "" ]]; then
 			rommd5=$(cat $prfiles/findextract)
 		elif [[ ! $(grep .win $prfiles/findextract) = "" ]]; then
@@ -4728,6 +4734,10 @@ extract_new() {
 					romzip="$project"
 				elif [[ ! $(echo $project | grep .tar$) = "" ]]; then
 					romtar="$project"
+				elif [[ ! $(echo $project | grep .tar.a$) = "" ]]; then
+					romtaratar=$(echo $project | sed 's/tar\.a/tar/')
+					mv $project $romtaratar
+					romtar="$romtaratar"
 				elif [[ ! $(echo $project | grep .tar.md5$) = "" ]]; then
 					rommd5="$project"
 				elif [[ ! $(echo $project | grep .win) = "" ]]; then
@@ -5047,8 +5057,8 @@ extract_new() {
 			banner
 			echo "${bluet}Extracting system.ext4.tar.a and boot.img ...$normal"
 			$p7z e $romzip system.ext4.tar.a boot.img 2>/dev/null >> $logs/zip.log
-			romzip=""
-			romtar="system.ext4.tar.a"
+			mv system.ext4.tar.a system.ext4.tar
+			romtar="system.ext4.tar"
 		elif [[ ! $($p7z l $romzip | grep tar.md5) = "" ]]; then
 			banner
 			tarmd5=$($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }')
@@ -5230,12 +5240,6 @@ extract_new() {
 		fi
 	fi
 	if [[ ! $romtar = "" ]]; then
-		if [[ ! $(ls | grep .tar.a) = "" && $(ls | grep .tar | wc -l) -gt "1" ]]; then
-			romtara=$(ls | grep .tar.a)
-			romtaratar=$(echo $romtara | sed 's/tar\.a/tar/')
-			mv $romtara $romtaratar
-			romtar="$romtaratar"
-		fi
 		if [[ ! $(tar --numeric-owner -tvf $romtar 2>&1 | gawk '{ print $2, $6 }' | grep -m 1 "/bin" | gawk '{ print $1 }') = "0/2000" ]]; then
 			banner
 			echo "${redb}${yellowt}${bold}ERROR:$normal"
@@ -5582,21 +5586,50 @@ get_byname() {
 		fi
 		# START Detect by-name from the boot.img
 		if [[ $choice = "2" ]]; then
-			if [[ ! -f $romdir/boot.img && ! -f $romdir/kernel.elf ]]; then
+			if [[ ! -f $romdir/boot.img && ! -f $romdir/kernel.elf && ! -f $romdir/recovery.img ]]; then
 				banner
 				echo "${redb}${yellowt}ERROR:$normal"
-				echo "${redt}Please copy a boot.img / kernel.elf to the project"
-				echo "directory and try again.$normal"
+				echo "${redt}Please copy a boot.img, recovery.img, or kernel.elf to the"
+				echo "project directory and try again.$normal"
 				echo ""
 				read -p "Press ENTER to continue"
 				get_byname
 				return 1
 			fi
 			banner
-			if [[ ! -d $romdir/bootimg/ramdisk ]]; then
-				if [[ -f $romdir/boot.img ]]; then
+			if [[ ! -d $romdir/bootimg/ramdisk && ! -d $romdir/recoveryimg/ramdisk ]]; then
+				if [[ -f $romdir/boot.img && -f $romdir/recovery.img ]]; then
+					choice=""
+					while [[ ! ${choice} =~ ^[1-2]$ ]]; do
+						banner
+						echo "Which image should we use?"
+						echo ""
+						echo "1) boot.img"
+						echo "2) recovery.img"
+						echo ""
+						read -n 1 -p "Make your selection:  " choice
+						echo ""
+					done
+					banner
+					if [[ $choice = 1 ]]; then
+						echo "${bluet}Detecting by-name from boot.img ...$normal"
+						chosenimg="boot"
+						bootext="1"
+						boot_unpack
+					elif [[ $choice = "2" ]]; then
+						echo "${bluet}Detecting by-name from recovery.img ...$normal"
+						chosenimg="recovery"
+						bootext="1"
+						boot_unpack
+					fi
+				elif [[ -f $romdir/boot.img ]]; then
 					echo "${bluet}Detecting by-name from boot.img ...$normal"
 					chosenimg="boot"
+					bootext="1"
+					boot_unpack
+				elif [[ -f $romdir/recovery.img ]]; then
+					echo "${bluet}Detecting by-name from recovery.img ...$normal"
+					chosenimg="recovery"
 					bootext="1"
 					boot_unpack
 				elif [[ -f $romdir/kernel.elf ]]; then
@@ -5607,7 +5640,7 @@ get_byname() {
 				else
 					banner
 					echo "${redb}${yellowt}ERROR:$normal"
-					echo "${redt}You need a boot.img / kernel.elf for this process.$normal"
+					echo "${redt}You need a boot.img, recovery.img, or kernel.elf for this process.$normal"
 					echo ""
 					read -p "Press ENTER to continue"
 					rm -rf $deviceloc/superr_byname
@@ -5615,7 +5648,11 @@ get_byname() {
 					return 1
 				fi
 			fi
-			cd $romdir/bootimg/ramdisk
+			if [[ $chosenimg = "boot" ]]; then
+				cd $romdir/bootimg/ramdisk
+			elif [[ $chosenimg = "recovery" ]]; then
+				cd $romdir/recoveryimg/ramdisk
+			fi
 			findfstab
 			if [[ ! $(${usesudo}grep "by-name/system" $fstab) = "" ]]; then
 				${usesudo}grep "by-name/system" $fstab | grep -v "#" | gawk '{ print $1 }' | sed 's/\/system//' > $deviceloc/superr_byname2
@@ -5632,7 +5669,7 @@ get_byname() {
 			mv $deviceloc/superr_byname2 $deviceloc/superr_byname
 			byname=$(cat $deviceloc/superr_byname)
 			rm -rf $prfiles/permtype_old
-			${usesudo}rm -rf $romdir/bootimg
+			${usesudo}rm -rf $romdir/bootimg $romdir/recoveryimg
 			if [[ $byname = "" ]]; then
 				banner
 				echo "${redb}${yellowt}ERROR:$normal"
