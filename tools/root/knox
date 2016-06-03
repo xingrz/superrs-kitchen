@@ -1,3 +1,4 @@
+system/app/BBCAgent*
 system/app/Bridge*
 system/app/ContainerAgent*
 system/app/ContainerEventsRelayManager*
@@ -5,11 +6,14 @@ system/app/kioskdefault*
 system/app/KLMSAgent*
 system/app/Knox*
 system/app/KNOX*
+system/app/MyKNOX*
 system/app/RCPComponents*
+system\app\SecurityLogAgent*
 system/app/SwitchKnoxI*
 system/app/UniversalMDMClient*
 system/container*
 system/etc/secure_storage/com.sec.knox*
 system/preloadedkiosk*
+system/preloadedmdm*
 system/preloadedsso*
 system/priv-app/KLMSAgent*

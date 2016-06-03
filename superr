@@ -1687,7 +1687,7 @@ change_permtype() {
 			if [[ ! $api -ge "21" || ! $(getconf LONG_BIT) = "64" ]]; then
 				echo "${redt}3) Sparse dat (For 64bit Linux and Lollipop+ only)$normal"
 			else
-				echo "3) Sparse dat (recommended)"
+				echo "3) Sparse dat"
 			fi
 		fi
 		if [[ $permtype = "raw_img" ]]; then
@@ -5326,26 +5326,9 @@ extract_new() {
 			mkdir -p $base/tools/devices/$devicename
 			deviceloc=""
 			deviceloc=$base/tools/devices/$devicename
-			choice=""
-			if [[ $(grep "ro.build.version.sdk" $romdir/system/build.prop | cut -d"=" -f2) -ge "21" && $(getconf LONG_BIT) = "64" ]]; then
-				banner
-				echo "${bluet}This ROM is Lollipop or beyond.$normal"
-				echo ""
-				choice=""
-				read -n 1 -p "Would you like to use sparse dat images (recommended)? y/n  " choice
-			fi
-			banner
-			echo "${bluet}Preparing project directory ...$normal"
-			if [[ $choice = "y" ]]; then
-				cp -r $tools/updater/META-INF-DAT/META-INF $romdir/
-				cp -r $tools/updater/META-INF-DAT/install $romdir/
-				permtype="sparse_dat"
-				echo "$permtype" > $prfiles/permtype
-			else
-				rm -rf $prfiles/permtype
-				permtype=""
-				cp -r $tools/updater/META-INF $romdir
-			fi
+			rm -rf $prfiles/permtype
+			permtype=""
+			cp -r $tools/updater/META-INF $romdir
 			cd $romdir
 			link1=$(find system vendor -type l -printf "%l\n" 2>/dev/null | sed 's/^/symlink(\"/; s/$/\", /')
 			link2=$(find system vendor -type l 2>/dev/null | sed 's/^/\"\//; s/$/\");/')
@@ -7222,7 +7205,7 @@ update_project() {
 				if [[ ! $api -ge "21" || ! $(getconf LONG_BIT) = "64" ]]; then
 					echo "${redt}3) Sparse dat (For 64bit Linux and Lollipop+ only)$normal"
 				else
-					echo "3) Sparse dat (recommended)"
+					echo "3) Sparse dat"
 				fi
 				echo "4) raw_img"
 				echo ""

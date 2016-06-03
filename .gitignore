@@ -22,6 +22,7 @@
 /tools/rimg2sdat.exe
 /tools/zipalign.exe
 /tools/devices/*
+!/tools/devices/a5xelte
 !/tools/devices/ada
 !/tools/devices/angler
 !/tools/devices/Aquaris_E5_HD
