@@ -8,7 +8,7 @@ system/app/Knox*
 system/app/KNOX*
 system/app/MyKNOX*
 system/app/RCPComponents*
-system\app\SecurityLogAgent*
+system/app/SecurityLogAgent*
 system/app/SwitchKnoxI*
 system/app/UniversalMDMClient*
 system/container*

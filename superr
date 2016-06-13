@@ -4682,7 +4682,7 @@ extract_new() {
 	ls | grep .win | grep -v boot | grep -m 1 .win >> $prfiles/findextract
 	ls | grep -m 1 chunk >> $prfiles/findextract
 	ls | grep .img$ | grep -v "boot\|recovery\|chunk" >> $prfiles/findextract
-	ls | grep system.ext4$ >> $prfiles/findextract
+	ls | grep "system.ext4$\|system.img.ext4" >> $prfiles/findextract
 	ls | grep *-*-factory-*.tgz >> $prfiles/findextract
 	ls | grep *-*-preview-*.tgz >> $prfiles/findextract
 	if [[ ! $(cat $prfiles/findextract | wc -l) -gt "1" ]]; then
@@ -4703,8 +4703,12 @@ extract_new() {
 			romchunk=$(cat $prfiles/findextract)
 		elif [[ ! $(grep .img$ $prfiles/findextract) = "" ]]; then
 			romimg=$(cat $prfiles/findextract)
-		elif [[ ! $(grep system.ext4$ $prfiles/findextract) = "" ]]; then
-			mv system.ext4 system.img
+		elif [[ ! $(grep "system.ext4$\|system.img.ext4" $prfiles/findextract) = "" ]]; then
+			if [[ -f system.ext4 ]]; then
+				mv system.ext4 system.img
+			elif [[ -f system.img.ext4 ]]; then
+				mv system.img.ext4 system.img
+			fi
 			romimg="system.img"
 		elif [[ ! $(grep *-*-factory-*.tgz $prfiles/findextract) = "" ]]; then
 			romtgz=$(cat $prfiles/findextract)
@@ -4746,16 +4750,14 @@ extract_new() {
 					romchunk="$project"
 				elif [[ ! $(echo $project | grep .img$) = "" ]]; then
 					romimg="$project"
-					if [[ $romimg = "system.img.ext4" ]]; then
-						mv $romdir/system.img.ext4 $romdir/system.img
-						romimg="system.img"
-					fi
-				elif [[ ! $(echo $project | grep system.ext4$) = "" ]]; then
+				elif [[ ! $(echo $project | grep "system.ext4$\|system.img.ext4") = "" ]]; then
 					romimg="$project"
 					if [[ $romimg = "system.ext4" ]]; then
 						mv $romdir/system.ext4 $romdir/system.img
-						romimg="system.img"
+					elif [[ $romimg = "system.img.ext4" ]]; then
+						mv $romdir/system.img.ext4 $romdir/system.img
 					fi
+					romimg="system.img"
 				elif [[ ! $(echo $project | grep .tgz$) = "" ]]; then
 					romtgz="$project"
 				fi
@@ -6208,7 +6210,7 @@ kitchen_update() {
 			echo "${redt}The file server must be down temporarily."
 			echo "Please try again later.$normal"
 			echo ""
-			read -p "Press ENTER to return to main menu"
+			read -p "Press ENTER to return to the Main Menu"
 			exec ./superr
 			return 1
 		fi
@@ -6264,14 +6266,14 @@ kitchen_update() {
 					banner
 					echo "${greent}SuperR's Kitchen has been updated$normal"
 					echo ""
-					read -p "Press ENTER to return to continue"
+					read -p "Press ENTER to continue"
 				else
 					banner
 					echo "${redb}${yellowt}${bold}ERROR:$normal"
 					echo "${redt}Could not find .git in your kitchen directory."
-					echo "The kitchen must be git cloned.$normal"
+					echo "The kitchen must be git cloned to use this updater.$normal"
 					echo ""
-					read -p "Press ENTER to return to main menu"
+					read -p "Press ENTER to continue"
 				fi
 			fi
 		else
