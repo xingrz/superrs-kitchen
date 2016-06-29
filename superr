@@ -6640,12 +6640,12 @@ if [[ ! $(echo $(pwd) | grep " ") = "" ]]; then
 fi
 export base=$(pwd)
 tools=$base/tools
-smali=$(ls $tools/smali/current | grep ^smali)
-smalio=$(ls $tools/smali/old | grep ^smali)
-baksmali=$(ls $tools/smali/current | grep baksmali)
-baksmalio=$(ls $tools/smali/old | grep baksmali)
-oat2dex=$(ls $tools/smali/current | grep oat2dex)
-oat2dexo=$(ls $tools/smali/old | grep oat2dex)
+oat2dexo=$(find $tools/smali/old -name *oat2dex*)
+baksmali=$(find $tools/smali/current -name *baksmali*)
+smali=$(find $tools/smali/current -name *smali* | grep -v "baksmali")
+smalio=$(find $tools/smali/old -name *smali* | grep -v "baksmali")
+baksmalio=$(find $tools/smali/old -name *baksmali*)
+oat2dex=$(find $tools/smali/current -name *oat2dex*)
 superrv=$(grep "SuperR's Kitchen v" README.md | gawk '{ print $4 }')
 if [[ ! $(uname -s | grep "CYGWIN\|cygwin\|Cygwin") = "" ]]; then
 	rm -rf $tools/dependencies2
