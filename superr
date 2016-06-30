@@ -2249,6 +2249,7 @@ delete_project() {
 	return 1
 }
 deodex_start() {
+	cd $romdir
 	if [[ ! $bashwin = "" ]]; then
 		banner
 		echo "${redb}${yellowt}${bold}ERROR:$normal"
@@ -2548,6 +2549,8 @@ deodex_l() {
 		deoarch="$arch2"
 		deoarch2="$arch2"
 		dodeodexl
+		deoarch="$arch"
+		deoarch2="$arch"
 	fi
 	echo "$clears"
 	echo ""
@@ -2883,6 +2886,8 @@ deodex_m() {
 		deoarch="oat/$arch2"
 		deoarch2="$arch2"
 		dodeodexm
+		deoarch="oat/$arch"
+		deoarch2="$arch"
 	fi
 	echo "$clears"
 	echo ""
@@ -3235,6 +3240,8 @@ deodex_m2() {
 		deoarch="oat/$arch2"
 		deoarch2="$arch2"
 		dodeodexm2
+		deoarch="oat/$arch"
+		deoarch2="$arch"
 	fi
 	echo "$clears"
 	echo ""
@@ -3591,6 +3598,8 @@ deodex_n() {
 		deoarch="oat/$arch2"
 		deoarch2="$arch2"
 		dodeodexn
+		deoarch="oat/$arch"
+		deoarch2="$arch"
 	fi
 	echo "$clears"
 	echo ""
@@ -3851,6 +3860,7 @@ deodex_sqsh() {
 	rm -rf sqshtmp $sqshdir
 	sqshfile=""
 	sqshdir=""
+	cd $romdir
 }
 dozipalign() {
 	cd $romdir
