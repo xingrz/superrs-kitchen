@@ -2413,12 +2413,12 @@ deodex_l() {
 					mv $deoappdir/$app/$deoarch/$app-classes3.dex $deoappdir/$app/$deoarch/classes3.dex
 				fi
 				$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-				rm -rf $deoappdir/$app/oat
+				rm -rf $deoappdir/$app
 			else
 				echo ""
 				echo "$app is already deodexed ..."
 				echo ""
-				rm -rf $deoappdir/$app/oat
+				rm -rf $deoappdir/$app
 			fi
 		done
 	}
@@ -2499,8 +2499,8 @@ deodex_l() {
 	applist=$(ls $appdir)
 	app=""
 	for app in $(echo "$applist"); do
-		if [[ ! $arch2 = "" && -d $appdir/$app/oat/$arch && -d $appdir/$app/oat/$arch2 ]]; then
-			rm -rf $appdir/$app/oat/$arch2
+		if [[ ! $arch2 = "" && -d $appdir/$app/$arch && -d $appdir/$app/$arch2 ]]; then
+			rm -rf $appdir/$app/$arch2
 		fi
 	done
 	deoappdir="$appdir"
@@ -2537,8 +2537,8 @@ deodex_l() {
 	applist=$(ls $privdir)
 	privapp=""
 	for privapp in $(echo "$applist"); do
-		if [[ ! $arch2 = "" && -d $privdir/$privapp/oat/$arch && -d $privdir/$privapp/oat/$arch2 ]]; then
-			rm -rf $privdir/$privapp/oat/$arch2
+		if [[ ! $arch2 = "" && -d $privdir/$privapp/$arch && -d $privdir/$privapp/$arch2 ]]; then
+			rm -rf $privdir/$privapp/$arch2
 		fi
 	done
 	deoappdir="$privdir"
@@ -2559,7 +2559,7 @@ deodex_l() {
 	echo "----------------------------------------------------"
 	echo ""
 	frame=""
-	for frame in $( ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev ); do
+	for frame in $(ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev); do
 		if [[ $(echo $frame | grep classes) = "" && $($p7z l $framedir/$frame.jar | grep classes.dex) = "" ]]; then
 			echo ""
 			echo "... Deodexing $frame"
@@ -2585,7 +2585,7 @@ deodex_l() {
 		fi
 	done
 	frame2=""
-	for frame2 in $( ls $framedir/$deoarch2/dex | grep .dex | rev | cut -c 5- | rev ); do
+	for frame2 in $(ls $framedir/$deoarch2/dex | grep .dex | rev | cut -c 5- | rev); do
 		if [[ $(echo $frame2 | grep classes) = "" && $($p7z l $framedir/$frame2.jar | grep classes.dex) = "" ]]; then
 			echo ""
 			echo "... Deodexing $frame2"
@@ -3250,7 +3250,7 @@ deodex_m2() {
 	echo "----------------------------------------------------"
 	echo ""
 	frame=""
-	for frame in $( ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev ); do
+	for frame in $(ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev); do
 		if [[ $(echo $frame | grep classes) = "" && $($p7z l $framedir/$frame.jar | grep classes.dex) = "" ]]; then
 			echo ""
 			echo "... Deodexing $frame"
@@ -3288,7 +3288,7 @@ deodex_m2() {
 		fi
 	done
 	frame2=""
-	for frame2 in $( ls $framedir/$deoarch2/dex | grep .dex | rev | cut -c 5- | rev ); do
+	for frame2 in $(ls $framedir/$deoarch2/dex | grep .dex | rev | cut -c 5- | rev); do
 		if [[ $(echo $frame2 | grep classes) = "" && $($p7z l $framedir/$frame2.jar | grep classes.dex) = "" ]]; then
 			echo ""
 			echo "... Deodexing $frame2"
@@ -3608,7 +3608,7 @@ deodex_n() {
 	echo "----------------------------------------------------"
 	echo ""
 	frame=""
-	for frame in $( ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev ); do
+	for frame in $(ls $framedir/$deoarch | grep .odex | rev | cut -c 6- | rev); do
 		if [[ $(echo $frame | grep classes) = "" && $($p7z l $framedir/$frame.jar | grep classes.dex) = "" ]]; then
 			echo ""
 			echo "... Deodexing $frame"
