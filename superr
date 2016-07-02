@@ -2407,12 +2407,12 @@ deodex_l() {
 					mv $deoappdir/$app/$deoarch/$app-classes3.dex $deoappdir/$app/$deoarch/classes3.dex
 				fi
 				$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-				rm -rf $deoappdir/$app
+				rm -rf $deoappdir/$app/$deoarch
 			else
 				echo ""
 				echo "$app is already deodexed ..."
 				echo ""
-				rm -rf $deoappdir/$app
+				rm -rf $deoappdir/$app/$deoarch
 			fi
 		done
 	}
