@@ -2250,15 +2250,18 @@ delete_project() {
 }
 deodex_start() {
 	cd $romdir
+	exit_deo() {
+		echo ""
+		read -p "Press ENTER to return to ROM Tools"
+		rom_tools
+		return 1
+	}
 	if [[ ! $bashwin = "" ]]; then
 		banner
 		echo "${redb}${yellowt}${bold}ERROR:$normal"
 		echo "${redt}You cannot deodex in Bash on Ubuntu on Windows due"
 		echo "to not being able to install java.$normal"
-		echo ""
-		read -p "Press ENTER to return to ROM Tools"
-		rom_tools
-		return 1
+		exit_deo
 	fi
 	rm -rf $logs/extraodex.txt
 	if [[ ! -d "$framedir" || ! -f $romdir/system/build.prop ]]; then
@@ -2266,27 +2269,18 @@ deodex_start() {
 		echo "${redb}${yellowt}${bold}MISSING FILES:$normal"
 		echo "${redt}You must copy the framework directory and build.prop"
 		echo "from your ROM into the $yellowt$romname/system ${redt}directory$normal"
-		echo ""
-		read -p "Press ENTER to return to ROM Tools"
-		rom_tools
-		return 1
+		exit_deo
 	fi
 	if [[ ! "$odexstatus" = "Odexed" ]]; then
 		banner
 		echo "${redt}There are no odex files in this rom.$normal"
-		echo ""
-		read -p "Press ENTER to return to ROM Tools"
-		rom_tools
-		return 1
+		exit_deo
 	fi
 	if [[ $api -ge 21 && $(find $framedir -name boot.oat) = "" ]]; then
 		banner
 		echo "$redb${yellowt}ERROR:$normal"
 		echo "${redt}There is no boot.oat in this rom. It cannot be deodexed.$normal"
-		echo ""
-		read -p "Press ENTER to return to ROM Tools"
-		rom_tools
-		return 1
+		exit_deo
 	fi
 	if [[ -f $romdir/system/odex.sqsh ]]; then
 		sqshfile="odex.sqsh"
@@ -2347,9 +2341,9 @@ deodex_l() {
 		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 			arch2="x86"
 		fi
-	elif [[ $armtest = "arm" && -f $framedir/$armtest/boot.oat ]]; then
+	elif [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then
 		arch="arm"
-	elif [[ $x86test = "x86" && -f $framedir/$x86test/boot.oat ]]; then
+	elif [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 		arch="x86"
 	else
 		while [[ ! -f $framedir/$arch/boot.oat ]]; do
@@ -2628,7 +2622,6 @@ deodex_l() {
 	if [[ "$stillodexed" = "" ]]; then
 		banner
 		echo "${greent}Deodexing complete$normal"
-		echo ""
 		exit_deo
 	else
 		banner
@@ -2655,9 +2648,9 @@ deodex_m() {
 		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 			arch2="x86"
 		fi
-	elif [[ $armtest = "arm" && -f $framedir/$armtest/boot.oat ]]; then
+	elif [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then
 		arch="arm"
-	elif [[ $x86test = "x86" && -f $framedir/$x86test/boot.oat ]]; then
+	elif [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 		arch="x86"
 	else
 		while [[ ! -f $framedir/$arch/boot.oat ]]; do
@@ -2995,7 +2988,6 @@ deodex_m() {
 	if [[ "$stillodexed" = "" ]]; then
 		banner
 		echo "${greent}Deodexing complete$normal"
-		echo ""
 		exit_deo
 	else
 		banner
@@ -3022,9 +3014,9 @@ deodex_m2() {
 		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 			arch2="x86"
 		fi
-	elif [[ $armtest = "arm" && -f $framedir/$armtest/boot.oat ]]; then
+	elif [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then
 		arch="arm"
-	elif [[ $x86test = "x86" && -f $framedir/$x86test/boot.oat ]]; then
+	elif [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 		arch="x86"
 	else
 		while [[ ! -f $framedir/$arch/boot.oat ]]; do
@@ -3332,7 +3324,6 @@ deodex_m2() {
 	if [[ "$stillodexed" = "" ]]; then
 		banner
 		echo "${greent}Deodexing complete$normal"
-		echo ""
 		exit_deo
 	else
 		banner
@@ -3359,9 +3350,9 @@ deodex_n() {
 		if [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 			arch2="x86"
 		fi
-	elif [[ $armtest = "arm" && -f $framedir/$armtest/boot.oat ]]; then
+	elif [[ $armtest = "arm" && -f $framedir/arm/boot.oat ]]; then
 		arch="arm"
-	elif [[ $x86test = "x86" && -f $framedir/$x86test/boot.oat ]]; then
+	elif [[ $x86test = "x86" && -f $framedir/x86/boot.oat ]]; then
 		arch="x86"
 	else
 		while [[ ! -f $framedir/$arch/boot.oat ]]; do
@@ -3707,7 +3698,6 @@ deodex_n() {
 	if [[ "$stillodexed" = "" ]]; then
 		banner
 		echo "${greent}Deodexing complete$normal"
-		echo ""
 		exit_deo
 	else
 		banner
@@ -3826,7 +3816,6 @@ deodex_old() {
 	if [[ "$stillodexed" = "" ]]; then
 		banner
 		echo "${greent}Deodexing complete$normal"
-		echo ""
 		exit_deo
 	else
 		banner
