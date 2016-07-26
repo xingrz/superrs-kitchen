@@ -2282,6 +2282,19 @@ deodex_start() {
 		echo "${redt}There is no boot.oat in this rom. It cannot be deodexed.$normal"
 		exit_deo
 	fi
+	banner
+	echo "$redb${yellowt}NOTICE:$normal"
+	echo "${bluet}Deodexing ROMs may or may not work. You may get"
+	echo "errors, it may not boot, or both. I am aware of"
+	echo "the problems. Unless you know how to fix them,"
+	echo "please do not post about it. Thanks :)$normal"
+	echo ""
+	reply=""
+	read -n 1 -p "Would you like to try anyway?  y/n  " reply
+	if [[ ! $reply = "y" ]]; then
+		rom_tools
+		return 1
+	fi
 	if [[ -f $romdir/system/odex.sqsh ]]; then
 		sqshfile="odex.sqsh"
 		deodex_sqsh
@@ -2305,7 +2318,7 @@ deodex_start() {
 		oat2dex=$(find $tools/smali/old -name *oat2dex*)
 		deodex_l
 		return 1
-	elif [[ $api -ge 23 && ! $androidversion = "N" ]]; then
+	elif [[ $api -eq 23 && ! $androidversion = "N" ]]; then
 		choice=""
 		while [[ ! ${choice} =~ ^[1-2]$ ]]; do
 			banner
@@ -2329,7 +2342,7 @@ deodex_start() {
 			deodex_m2
 		fi
 		return 1
-	elif [[ $api -ge 23 && $androidversion = "N" ]]; then
+	elif [[ $api -eq 23 && $androidversion = "N" ]] || [[ $api -eq 24 ]]; then
 		oat2dex=$(find $tools/smali/current -name *oat2dex*)
 		baksmali=$(find $tools/smali/current -name *baksmali*)
 		smali=$(find $tools/smali/current -name *smali* | grep -v "baksmali")
@@ -4548,7 +4561,7 @@ extract_new() {
 		touch $prfiles/root_existing
 	fi
 	if [[ ! $romimg = "" || ! $romwin = "" || ! $romtar = "" ]] && [[ ! $romimg = "cache.img" && ! $romimg = "hidden.img" && ! $romimg = "data.img" && ! $romimg = "vendor.img" && ! $romimg = "generic.img" ]]; then
-		if [[ -d $romdir/system ]]; then
+		if [[ -f $romdir/system/build.prop ]]; then
 			if [[ -f cache.img ]]; then
 				banner
 				choice=""
@@ -4625,9 +4638,12 @@ extract_new() {
 		else
 			banner
 			echo "${redb}${yellowt}${bold}ERROR:$normal"
-			echo "${redt}There is no system directory.$normal"
+			echo "${redt}There was a problem extracting your ROM.$normal"
 			echo ""
 			read -p "Press ENTER to return to the Main menu"
+			cd $base
+			exec ./superr
+			return 1
 		fi
 	fi
 	cd $base
