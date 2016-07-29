@@ -2306,6 +2306,19 @@ deodex_start() {
 				deodex_sqsh
 			fi
 		fi
+	elif [[ -f $romdir/system/odex.app.sqsh ]]; then
+		sqshfile="odex.app.sqsh"
+		deodex_sqsh
+		if [[ -f $romdir/system/odex.priv-app.sqsh ]]; then
+			sqshfile="odex.priv-app.sqsh"
+			deodex_sqsh
+		fi
+		grep -v "odex.app\|odex.priv-app" $usdir/updater-script > $usdir/updater-script2
+		mv $usdir/updater-script2 $usdir/updater-script
+		grep -v "odex.app\|odex.priv-app" $prfiles/symlinks > $prfiles/symlinks2
+		mv $prfiles/symlinks2 $prfiles/symlinks
+		grep -v "odex.app\|odex.priv-app" $prfiles/symlinks.orig > $prfiles/symlinks.orig2
+		mv $prfiles/symlinks.orig2 $prfiles/symlinks.orig
 	fi
 	totalmem=$(grep MemTotal /proc/meminfo | gawk '{ print $2 }')
 	heapsize=$(echo | gawk "{ print $totalmem/1024-500 }" | cut -d"." -f1)
@@ -2469,19 +2482,19 @@ deodex_l() {
 			$p7z e -o$xzdir $line 2>/dev/null >> $logs/zip.log
 		done
 	fi
-	if [[ -d $romdir/system/app && ! $(find system vendor -name *.odex 2>/dev/null | grep -v "system/framework/oat/\|system/framework/$arch/\|system/framework/$arch2/\|system/app/\|system/priv-app/") = "" ]]; then
+	if [[ -d $romdir/system/app && ! $(find system vendor -name *.odex 2>/dev/null | grep -v "system/framework/$arch/\|system/framework/$arch2/\|system/app/\|system/priv-app/") = "" ]]; then
 		echo "$clears"
 		echo ""
 		echo "----------------------------------------------------"
 		echo "Moving extra apps ..."
 		echo "----------------------------------------------------"
 		echo ""
-		find system vendor -name *.odex 2>/dev/null | grep -v "system/framework/oat/\|system/framework/$arch/\|system/framework/$arch2/\|system/app/\|system/priv-app/" | rev | cut -d"/" -f4- | rev | sort -u > $logs/extraodex.txt
+		find system vendor -name *.odex 2>/dev/null | grep -v "system/framework/$arch/\|system/framework/$arch2/\|system/app/\|system/priv-app/" | rev | cut -d"/" -f3- | rev | sort -u > $logs/extraodex.txt
 		if [[ -s $logs/extraodex.txt ]]; then
 			extraapp=""
 			line=""
 			cat $logs/extraodex.txt | while read line; do
-				if [[ ! $(echo "$line" | rev | cut -d"/" -f1 | rev | grep "^\.") = "" ]]; then
+				if [[ ! $(basename "$line" | grep "^\.") = "" ]]; then
 					newapp=$(ls $line | grep .apk | cut -d"." -f1)
 					newappdir=$(echo "$line" | rev | cut -d"/" -f2- | rev)/$newapp
 					mv $line $newappdir
@@ -3870,15 +3883,22 @@ deodex_old() {
 	fi
 }
 deodex_sqsh() {
-	sqshdir=$(echo $sqshfile | cut -d"." -f1)
 	banner
 	echo "${bluet}Extracting $sqshfile ...$normal"
 	cd $romdir/system
-	mkdir -p sqshtmp
-	mv $sqshfile sqshtmp/
-	cd sqshtmp
+	if [[ ! $(echo "$sqshfile" | grep priv-app) = "" ]]; then
+		sqshdir="sqshtmp/priv-app"
+	elif [[ ! $(echo "$sqshfile" | grep app) = "" ]]; then
+		sqshdir="sqshtmp/app"
+	else
+		sqshdir="sqshtmp"
+	fi
+	mkdir -p $sqshdir
+	mv $sqshfile $sqshdir/
+	cd $sqshdir
 	$p7z x $sqshfile 2>/dev/null >> $logs/zip.log
 	rm -rf $sqshfile
+	cd $romdir/system/sqshtmp
 	banner
 	echo "${bluet}Moving odex files to system ...$normal"
 	line=""
@@ -3890,9 +3910,9 @@ deodex_sqsh() {
 		mv $line $romdir/system/$line
 	done
 	cd $romdir/system
-	rm -rf sqshtmp $sqshdir
+	rmleft=$(echo "$sqshfile" | sed 's/\.sqsh$//')
+	rm -rf sqshtmp $rmleft
 	sqshfile=""
-	sqshdir=""
 	cd $romdir
 }
 dozipalign() {
