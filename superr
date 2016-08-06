@@ -898,7 +898,7 @@ boot_unpack() {
 			fi
 			if [[ -f ${chosenimg}.img-compression ]]; then
 				cd $romdir/${chosenimg}img/ramdisk
-				( $compex $romdir/${chosenimg}img/${chosenimg}.img-ramdisk.gz | ${usesudo}cpio -i ) 2>&1 >/dev/null
+				( $compex $romdir/${chosenimg}img/${chosenimg}.img-ramdisk.gz | ${usesudo}cpio -id ) 2>&1 >/dev/null
 			fi
 		fi
 		if [[ -f $romdir/${chosenimg}img/ramdisk/sbin/ramdisk.cpio ]]; then
@@ -906,7 +906,7 @@ boot_unpack() {
 			mv ramdisk ramdisk2
 			mkdir -p ramdisk
 			cd ramdisk
-			( ${usesudo}cpio -i -F ../ramdisk2/sbin/ramdisk.cpio ) 2>&1 >/dev/null
+			( ${usesudo}cpio -id -F ../ramdisk2/sbin/ramdisk.cpio ) 2>&1 >/dev/null
 		fi
 		if [[ ! -f $romdir/${chosenimg}img/ramdisk/default.prop && ! $(xxd -p $romdir/$chosenimg.img | grep 88168858) = "" ]]; then
 			cd $romdir/${chosenimg}img
@@ -2337,16 +2337,28 @@ deodex_start() {
 			banner
 			echo "Which deodex method should we use?"
 			echo ""
-			echo "1) oat2dex with smali/baksmali as a backup"
+			echo "1) oat2dex"
 			echo "2) smali/baksmali"
 			echo ""
 			read -n 1 -p "Please enter your choice: " choice
 		done
-		# START oat2dex with smali/baksmali as a backup
+		# START oat2dex
 		if [[ $choice = "1" ]]; then
-			oat2dex=$(find $tools/smali/old -name *oat2dex*)
-			baksmali=$(find $tools/smali/current -name *baksmali*)
-			smali=$(find $tools/smali/current -name *smali* | grep -v "baksmali")
+			choice=""
+			while [[ ! ${choice} =~ ^[1-2]$ ]]; do
+				banner
+				echo "Which oat2dex version should we use?"
+				echo ""
+				echo "1) Official v0.86"
+				echo "2) Latest commit built from source"
+				echo ""
+				read -n 1 -p "Please enter your choice: " choice
+			done
+			if [[ $choice = "1" ]]; then
+				oat2dex=$(find $tools/smali/old -name *oat2dex*)
+			elif [[ $choice = "2" ]]; then
+				oat2dex=$(find $tools/smali/current -name *oat2dex*)
+			fi
 			deodex_m
 		# START smali/baksmali
 		elif [[ $choice = "2" ]]; then
@@ -2748,7 +2760,13 @@ deodex_m() {
 				echo "... Deodexing $app"
 				echo ""
 				java -Xmx${heapsize}m -jar $oat2dex $deoappdir/$app/$deoarch/$app.odex $framedir/$deoarch2/odex >> $logs/deodex.log
-				if [[ $(gawk "/$app\/$app\.apk/{getline; print}" $logs/deodex.log | grep error) = "" ]]; then
+				if [[ $(gawk "/$app\/$app\.apk/{getline; print}" $logs/deodex.log | grep "error\|Failed\|skip") = "" ]]; then
+					if [[ ! -f $deoappdir/$app/$deoarch/$app.dex ]]; then
+						echo "${redt}${app} Failed ...$normal"
+						echo "$deoappdir/$app/$deoarch/$app.odex" >> $logs/deodex_fail_list
+						rm -rf $deoappdir/$app/$deoarch/$app-classes*.dex
+						continue
+					fi
 					mv $deoappdir/$app/$deoarch/$app.dex $deoappdir/$app/$deoarch/classes.dex
 					find $deoappdir/$app/$deoarch -name $app-classes*.dex | while read line; do
 					        appclassdex=$(basename $line)
@@ -2759,31 +2777,8 @@ deodex_m() {
 					$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
 					rm -rf $deoappdir/$app/oat
 				else
-					( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
-					if [[ $(grep classes2 $deoappdir/$app/$deoarch/classes.log) = "" ]]; then
-						java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/classes.dex >> $logs/deodex.log
-						rm -rf $deoappdir/$app/$deoarch/smali
-					else
-						grep "/system/$classdump" $deoappdir/$app/$deoarch/classes.log | sed "s/\/system\/$classdump\/$app\///g" >> $deoappdir/$app/$deoarch/classes2.log
-						mv $deoappdir/$app/$deoarch/classes2.log $deoappdir/$app/$deoarch/classes.log
-						line=""
-						for line in $(cat $deoappdir/$app/$deoarch/classes.log); do
-							java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -e /system/$classdump/$app/$line -o $deoappdir/$app/$deoarch/smali
-							java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/$line.dex
-							rm -rf $deoappdir/$app/$deoarch/smali
-						done
-					fi
-					if [[ -f "$deoappdir/$app/$deoarch/$app.apk.dex" ]]; then
-					        mv $deoappdir/$app/$deoarch/$app.apk.dex $deoappdir/$app/$deoarch/classes.dex
-					fi
-					find $deoappdir/$app/$deoarch -name $app.apk:classes*.dex.dex | while read line; do
-					        appclassdex=$(basename $line)
-					        appclassdir=$(dirname $line)
-					        classname=$(echo "$appclassdex" | cut -d":" -f2 | cut -d"." -f1-2)
-					        mv $line $appclassdir/$classname
-					done
-					$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-					rm -rf $deoappdir/$app/oat
+					echo "${redt}${app} Failed ...$normal"
+					echo "$deoappdir/$app/$deoarch/$app.odex" >> $logs/deodex_fail_list
 				fi
 			else
 				echo ""
@@ -2793,7 +2788,7 @@ deodex_m() {
 			fi
 		done
 	}
-	rm -rf $prfiles/deodex_*
+	rm -rf $prfiles/deodex_* $logs/deodex_fail_list
 	touch $prfiles/deodex_m
 	rm -rf $logs/*.log
 	if [[ ! $(find $appdir $privdir $framedir -name *odex.* | grep ".gz\|.xz") = "" ]]; then
@@ -2953,32 +2948,8 @@ deodex_m() {
 				fi
 				rm -rf $framedir/$deoarch/classes*.dex
 			else
-				( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$frame.odex -d $framedir/$deoarch/ $framedir/$deoarch/$frame.odex -o $framedir/$deoarch/smali 2>&1 ) > $framedir/$deoarch/classes2.log
-	                        if [[ $(grep classes2 $framedir/$deoarch/classes2.log) = "" ]]; then
-	                                java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/classes.dex >> $logs/deodex.log
-	                                rm -rf $framedir/$deoarch/smali
-	                        else
-	                                grep "/system/framework" $framedir/$deoarch/classes2.log | sed "s/\/system\/framework\///" >> $framedir/$deoarch/classes3.log
-	                                mv $framedir/$deoarch/classes3.log $framedir/$deoarch/classes2.log
-	                                line=""
-	                                for line in $(cat $framedir/$deoarch/classes2.log); do
-	                                        java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$frame.odex -d $framedir/$deoarch/ $framedir/$deoarch/$frame.odex -e /system/framework/$line -o $framedir/$deoarch/smali >> $logs/deodex.log
-	                                        java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/$line.dex >> $logs/deodex.log
-	                                        rm -rf $framedir/$deoarch/smali
-	                                done
-	                        fi
-	                        if [[ -f "$framedir/$deoarch/$frame.jar.dex" ]]; then
-	                                mv $framedir/$deoarch/$frame.jar.dex $framedir/$deoarch/classes.dex
-	                        fi
-	                        find $framedir/$deoarch -name $frame.jar:classes*.dex.dex | while read line; do
-				        frameclassdex=$(basename $line)
-				        frameclassdir=$(dirname $line)
-				        classname=$(echo "$frameclassdex" | cut -d":" -f2 | cut -d"." -f1-2)
-				        mv $line $frameclassdir/$classname
-				done
-	                        $p7z u -tzip $framedir/$frame.jar $framedir/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-	                        rm -rf $framedir/$deoarch/classes2.log
-	                        rm -rf $framedir/$deoarch/classes*.dex
+				echo "${redt}${frame} Failed ...$normal"
+				echo "$framedir/$deoarch/$frame.odex" >> $logs/deodex_fail_list
 			fi
 		else
 			echo ""
@@ -3014,6 +2985,24 @@ deodex_m() {
 			fi
 		fi
 	done
+	rm -rf $framedir/$arch/odex
+	rm -rf $framedir/$arch/dex
+	if [[ ! $arch2 = "" ]]; then
+		rm -rf $framedir/$arch2/odex
+		rm -rf $framedir/$arch2/dex
+	fi
+	delframework="y"
+	if [[ -s $logs/deodex_fail_list ]]; then
+		banner
+		echo "${redt}There were problems deodexing some of your ROM.$normal"
+		echo "The following file shows where the issues occurred:"
+		echo "${yellowt}$logs/deodex_fail_list"
+		echo ""
+		echo "${bluet}NOTE: If you say NO below, you can try smali/baksmali"
+		echo "method on the remaining files$normal"
+		echo ""
+		read -n 1 -p "Would you like to delete framework odex files anyway?  y/n  " delframework
+	fi
 	echo "$clears"
 	echo ""
 	echo "----------------------------------------------------"
@@ -3021,10 +3010,12 @@ deodex_m() {
 	echo "----------------------------------------------------"
 	echo ""
 	echo ""
-	rm -rf $framedir/oat
-	rm -rf $framedir/$arch
-	if [[ ! $arch2 = "" ]]; then
-		rm -rf $framedir/$arch2
+	if [[ $delframework = "y" ]]; then
+		rm -rf $framedir/oat
+		rm -rf $framedir/$arch
+		if [[ ! $arch2 = "" ]]; then
+			rm -rf $framedir/$arch2
+		fi
 	fi
 	cd $romdir
 	stillodexed=$(find system vendor -name *.odex 2>/dev/null)
@@ -3115,7 +3106,7 @@ deodex_m2() {
 				echo ""
 				echo "... Deodexing $app"
 				echo ""
-				( java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $deoappdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
+				( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $appdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
 				cat $deoappdir/$app/$deoarch/classes.log >> $logs/deodex.log
 				if [[ $(grep classes $deoappdir/$app/$deoarch/classes.log) = "" ]]; then
 					java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/classes.dex >> $logs/deodex.log
@@ -3125,7 +3116,7 @@ deodex_m2() {
 					mv $deoappdir/$app/$deoarch/classes2.log $deoappdir/$app/$deoarch/classes.log
 					line=""
 					for line in $(cat $deoappdir/$app/$deoarch/classes.log); do
-						java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $deoappdir/$app/$deoarch/$app.odex -e /system/$classdump/$app/$line -o $deoappdir/$app/$deoarch/smali >> $logs/deodex.log
+						java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -e /system/app/$app/$line -o $deoappdir/$app/$deoarch/smali >> $logs/deodex.log
 						java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/$line.dex >> $logs/deodex.log
 						rm -rf $deoappdir/$app/$deoarch/smali
 					done
@@ -3288,7 +3279,7 @@ deodex_m2() {
 	                        echo ""
 	                        echo "... Deodexing $frame"
 	                        echo ""
-				( java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $framedir/$deoarch/$frame.odex -o $framedir/$deoarch/smali 2>&1 ) > $framedir/$deoarch/classes2.log
+				( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$frame.odex -d $framedir/$deoarch/ $framedir/$deoarch/$frame.odex -o $framedir/$deoarch/smali 2>&1 ) > $framedir/$deoarch/classes2.log
 				cat $framedir/$deoarch/classes2.log >> $logs/deodex.log
 	                        if [[ $(grep classes2 $framedir/$deoarch/classes2.log) = "" ]]; then
 	                                java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/classes.dex >> $logs/deodex.log
@@ -3298,7 +3289,7 @@ deodex_m2() {
 	                                mv $framedir/$deoarch/classes3.log $framedir/$deoarch/classes2.log
 	                                line=""
 	                                for line in $(cat $framedir/$deoarch/classes2.log); do
-	                                        java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $framedir/$deoarch/$frame.odex -e /system/framework/$line -o $framedir/$deoarch/smali >> $logs/deodex.log
+						java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$frame.odex -d $framedir/$deoarch/ $framedir/$deoarch/$frame.odex -e /system/framework/$line -o $framedir/$deoarch/smali >> $logs/deodex.log
 	                                        java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/$line.dex >> $logs/deodex.log
 	                                        rm -rf $framedir/$deoarch/smali
 	                                done
@@ -3340,7 +3331,9 @@ deodex_m2() {
 					frame=$(echo "$line" | cut -d":" -f1)
 					mulclass=$(echo "$line" | cut -d":" -f2)
 					mv $framedir/temp/$line.tmp $framedir/temp/$mulclass
-					$p7z u -tzip $framedir/temp/$frame $framedir/temp/$mulclass 2>/dev/null >> $logs/zip.log
+					if [[ $($p7z l $framedir/temp/$frame | grep "$mulclass") = "" ]]; then
+						$p7z u -tzip $framedir/temp/$frame $framedir/temp/$mulclass 2>/dev/null >> $logs/zip.log
+					fi
 				fi
 	                        rm -rf $framedir/temp/classes*.dex
 	                        rm -rf $framedir/temp/smali
@@ -3458,7 +3451,13 @@ deodex_n() {
 				echo "... Deodexing $app"
 				echo ""
 				java -Xmx${heapsize}m -jar $oat2dex $deoappdir/$app/$deoarch/$app.odex $framedir/$deoarch2/odex >> $logs/deodex.log
-				if [[ $(gawk "/$app\/$app\.apk/{getline; print}" $logs/deodex.log | grep error) = "" ]]; then
+				if [[ $(gawk "/$app\/$app\.apk/{getline; print}" $logs/deodex.log | grep "error\|Failed\|skip") = "" ]]; then
+					if [[ ! -f $deoappdir/$app/$deoarch/$app.dex ]]; then
+						echo "${redt}${app} Failed ...$normal"
+						echo "$deoappdir/$app/$deoarch/$app.odex" >> $logs/deodex_fail_list
+						rm -rf $deoappdir/$app/$deoarch/$app-classes*.dex
+						continue
+					fi
 					mv $deoappdir/$app/$deoarch/$app.dex $deoappdir/$app/$deoarch/classes.dex
 					find $deoappdir/$app/$deoarch -name $app-classes*.dex | while read line; do
 					        appclassdex=$(basename $line)
@@ -3469,31 +3468,8 @@ deodex_n() {
 					$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
 					rm -rf $deoappdir/$app/oat
 				else
-					( java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $deoappdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
-					if [[ $(grep classes2 $deoappdir/$app/$deoarch/classes.log) = "" ]]; then
-						java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/classes.dex >> $logs/deodex.log
-						rm -rf $deoappdir/$app/$deoarch/smali
-					else
-						grep "/system/$classdump" $deoappdir/$app/$deoarch/classes.log | sed "s/\/system\/$classdump\/$app\///g" >> $deoappdir/$app/$deoarch/classes2.log
-						mv $deoappdir/$app/$deoarch/classes2.log $deoappdir/$app/$deoarch/classes.log
-						line=""
-						for line in $(cat $deoappdir/$app/$deoarch/classes.log); do
-							java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $deoappdir/$app/$deoarch/$app.odex -e /system/$classdump/$app/$line -o $deoappdir/$app/$deoarch/smali
-							java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/$line.dex
-							rm -rf $deoappdir/$app/$deoarch/smali
-						done
-					fi
-					if [[ -f "$deoappdir/$app/$deoarch/$app.apk.dex" ]]; then
-						mv $deoappdir/$app/$deoarch/$app.apk.dex $deoappdir/$app/$deoarch/classes.dex
-					fi
-					find $deoappdir/$app/$deoarch -name $app.apk:classes*.dex.dex | while read line; do
-					        appclassdex=$(basename $line)
-					        appclassdir=$(dirname $line)
-					        classname=$(echo "$appclassdex" | cut -d":" -f2 | cut -d"." -f1-2)
-					        mv $line $appclassdir/$classname
-					done
-					$p7z u -tzip $deoappdir/$app/$app.apk $deoappdir/$app/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-					rm -rf $deoappdir/$app/oat
+					echo "${redt}${app} Failed ...$normal"
+					echo "$deoappdir/$app/$deoarch/$app.odex" >> $logs/deodex_fail_list
 				fi
 			else
 				echo ""
@@ -3503,7 +3479,7 @@ deodex_n() {
 			fi
 		done
 	}
-	rm -rf $prfiles/deodex_*
+	rm -rf $prfiles/deodex_* $logs/deodex_fail_list
 	touch $prfiles/deodex_n
 	rm -rf $logs/*.log
 	if [[ ! $(find $appdir $privdir $framedir -name *odex.* | grep ".gz\|.xz") = "" ]]; then
@@ -3656,14 +3632,14 @@ deodex_n() {
 			echo "... Deodexing $frame"
 			echo ""
 			java -Xmx${heapsize}m -jar $oat2dex $framedir/$deoarch/$frame.odex $framedir/$deoarch2/odex >> $logs/deodex.log
-			if [[ $(gawk "/framework\/$frame\.jar/{getline; print}" $logs/deodex.log | grep error) = "" ]]; then
+			if [[ $(gawk "/framework\/$frame\.jar/{getline; print}" $logs/deodex.log | grep "error\|Failed\|skip") = "" ]]; then
+				if [[ ! -f $framedir/$deoarch/$frame.dex ]]; then
+					echo "${redt}${frame} Failed ...$normal"
+					echo "$framedir/$deoarch/$frame.odex" >> $logs/deodex_fail_list
+					rm -rf $framedir/$deoarch/$frame-classes*.dex
+					continue
+				fi
 				mv $framedir/$deoarch/$frame.dex $framedir/$deoarch/classes.dex
-				if [[ -f "$framedir/$deoarch/$frame-classes2.dex" ]]; then
-					mv $framedir/$deoarch/$frame-classes2.dex $framedir/$deoarch/classes2.dex
-				fi
-				if [[ -f "$framedir/$deoarch/$frame-classes3.dex" ]]; then
-					mv $framedir/$deoarch/$frame-classes3.dex $framedir/$deoarch/classes3.dex
-				fi
 				find $framedir/$deoarch -name $frame-classes*.dex | while read line; do
 				        frameclassdex=$(basename $line)
 				        frameclassdir=$(dirname $line)
@@ -3677,32 +3653,8 @@ deodex_n() {
 				fi
 				rm -rf $framedir/$deoarch/classes*.dex
 			else
-				( java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $framedir/$deoarch/$frame.odex -o $framedir/$deoarch/smali 2>&1 ) > $framedir/$deoarch/classes2.log
-				if [[ $(grep classes2 $framedir/$deoarch/classes2.log) = "" ]]; then
-					java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/classes.dex >> $logs/deodex.log
-					rm -rf $framedir/$deoarch/smali
-				else
-					grep "/system/framework" $framedir/$deoarch/classes2.log | sed "s/\/system\/framework\///" >> $framedir/$deoarch/classes3.log
-					mv $framedir/$deoarch/classes3.log $framedir/$deoarch/classes2.log
-					line=""
-					for line in $(cat $framedir/$deoarch/classes2.log); do
-						java -Xmx${heapsize}m -jar $baksmali -x -c boot.oat -d $framedir/$deoarch2 $framedir/$deoarch/$frame.odex -e /system/framework/$line -o $framedir/$deoarch/smali >> $logs/deodex.log
-						java -Xmx${heapsize}m -jar $smali -a $api $framedir/$deoarch/smali -o $framedir/$deoarch/$line.dex >> $logs/deodex.log
-						rm -rf $framedir/$deoarch/smali
-					done
-				fi
-				if [[ -f "$framedir/$deoarch/$frame.jar.dex" ]]; then
-					mv $framedir/$deoarch/$frame.jar.dex $framedir/$deoarch/classes.dex
-				fi
-				find $framedir/$deoarch -name $frame.jar:classes*.dex.dex | while read line; do
-				        frameclassdex=$(basename $line)
-				        frameclassdir=$(dirname $line)
-				        classname=$(echo "$frameclassdex" | cut -d":" -f2 | cut -d"." -f1-2)
-				        mv $line $frameclassdir/$classname
-				done
-				$p7z u -tzip $framedir/$frame.jar $framedir/$deoarch/classes*.dex 2>/dev/null >> $logs/zip.log
-				rm -rf $framedir/$deoarch/classes2.log
-				rm -rf $framedir/$deoarch/classes*.dex
+				echo "${redt}${frame} Failed ...$normal"
+				echo "$framedir/$deoarch/$frame.odex" >> $logs/deodex_fail_list
 			fi
 		else
 			echo ""
@@ -3738,6 +3690,19 @@ deodex_n() {
 			fi
 		fi
 	done
+	rm -rf $framedir/$arch/odex
+	if [[ ! $arch2 = "" ]]; then
+		rm -rf $framedir/$arch2/odex
+	fi
+	delframework="y"
+	if [[ -s $logs/deodex_fail_list ]]; then
+		banner
+		echo "${redt}There were problems deodexing some of your ROM.$normal"
+		echo "The following file shows where the issues occurred:"
+		echo "${yellowt}$logs/deodex_fail_list$normal"
+		echo ""
+		read -n 1 -p "Would you like to delete framework odex files anyway?  y/n  " delframework
+	fi
 	echo "$clears"
 	echo ""
 	echo "----------------------------------------------------"
@@ -3745,10 +3710,12 @@ deodex_n() {
 	echo "----------------------------------------------------"
 	echo ""
 	echo ""
-	rm -rf $framedir/oat
-	rm -rf $framedir/$arch
-	if [[ ! $arch2 = "" ]]; then
-		rm -rf $framedir/$arch2
+	if [[ $delframework = "y" ]]; then
+		rm -rf $framedir/oat
+		rm -rf $framedir/$arch
+		if [[ ! $arch2 = "" ]]; then
+			rm -rf $framedir/$arch2
+		fi
 	fi
 	cd $romdir
 	stillodexed=$(find system vendor -name *.odex 2>/dev/null)
@@ -3963,7 +3930,7 @@ elf_unpack() {
 		$p7z e 1 2>&1 >/dev/null
 		mkdir -p ramdisk
 		cd ramdisk
-		cpio -i < $romdir/${chosenimg}img/1~
+		cpio -id < $romdir/${chosenimg}img/1~
 		if [[ ! -f $prfiles/file_contexts && -f file_contexts ]]; then
 			cp file_contexts $prfiles/
 		fi
