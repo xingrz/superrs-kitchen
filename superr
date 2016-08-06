@@ -3106,7 +3106,7 @@ deodex_m2() {
 				echo ""
 				echo "... Deodexing $app"
 				echo ""
-				( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $appdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
+				( java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -o $deoappdir/$app/$deoarch/smali 2>&1 ) >> $deoappdir/$app/$deoarch/classes.log
 				cat $deoappdir/$app/$deoarch/classes.log >> $logs/deodex.log
 				if [[ $(grep classes $deoappdir/$app/$deoarch/classes.log) = "" ]]; then
 					java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/classes.dex >> $logs/deodex.log
