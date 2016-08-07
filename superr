@@ -3116,7 +3116,7 @@ deodex_m2() {
 					mv $deoappdir/$app/$deoarch/classes2.log $deoappdir/$app/$deoarch/classes.log
 					line=""
 					for line in $(cat $deoappdir/$app/$deoarch/classes.log); do
-						java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -e /system/app/$app/$line -o $deoappdir/$app/$deoarch/smali >> $logs/deodex.log
+						java -Xmx${heapsize}m -jar $baksmali -x -d $framedir/$deoarch2 -c boot.oat:$app.odex -d $deoappdir/$app/$deoarch/ $deoappdir/$app/$deoarch/$app.odex -e /system/$classdump/$app/$line -o $deoappdir/$app/$deoarch/smali >> $logs/deodex.log
 						java -Xmx${heapsize}m -jar $smali -a $api $deoappdir/$app/$deoarch/smali -o $deoappdir/$app/$deoarch/$line.dex >> $logs/deodex.log
 						rm -rf $deoappdir/$app/$deoarch/smali
 					done
