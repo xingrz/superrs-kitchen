@@ -4339,24 +4339,57 @@ extract_new() {
 			$p7z e $romzip system.ext4.tar.a boot.img 2>/dev/null >> $logs/zip.log
 			mv system.ext4.tar.a system.ext4.tar
 			romtar="system.ext4.tar"
-		elif [[ ! $($p7z l $romzip | grep tar.md5) = "" ]]; then
+		elif [[ ! $($p7z l $romzip | grep tar.md5) = "" && $($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }' | grep ^AP_) = "" ]]; then
 			banner
 			tarmd5=$($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }')
-			tarnomd5=$(echo $tarmd5 | rev | cut -d"." -f2- | rev)
-			echo "${bluet}Extracting $tarnomd5 ...$normal"
+			echo "${bluet}Extracting $tarmd5 ...$normal"
 			$p7z e $romzip $tarmd5 2>/dev/null >> $logs/zip.log
-			mv $tarmd5 $tarnomd5
 			banner
 			echo "${bluet}Extracting images ...$normal"
-			if [[ ! $(tar -tf $tarnomd5 | grep system.img.ext4) = "" ]]; then
-				tar -xf $tarnomd5 system.img.ext4 boot.img cache.img.ext4 2>/dev/null >> $logs/zip.log
+			if [[ ! $(tar -tf $tarmd5 | grep system.img.ext4) = "" ]]; then
+				tar -xf $tarmd5 system.img.ext4 boot.img cache.img.ext4 2>/dev/null >> $logs/zip.log
 				mv system.img.ext4 system.img
 				mv cache.img.ext4 cache.img
-			elif [[ ! $(tar -tf $tarnomd5 | grep system.img) = "" ]]; then
-				tar -xf $tarnomd5 system.img boot.img cache.img 2>/dev/null >> $logs/zip.log
+			elif [[ ! $(tar -tf $tarmd5 | grep system.img) = "" ]]; then
+				tar -xf $tarmd5 system.img boot.img cache.img 2>/dev/null >> $logs/zip.log
 			fi
 			if [[ -f system.img ]]; then
-				rm -rf $tarnomd5
+				rm -rf $tarmd5
+			else
+				banner
+				echo "$redb$yellowt${bold}ERROR:$normal"
+				echo "${redt}Something went wrong wiith the extraction.$normal"
+				echo ""
+				read -p "Press ENTER to return to Main Menu"
+				cd $base
+				exec ./superr
+				return 1
+			fi
+			romzip=""
+			romimg="system.img"
+		elif [[ ! $($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }' | grep ^AP_) = "" ]]; then
+			banner
+			mainmd5=$($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }' | grep ^AP_)
+			cscmd5=$($p7z l $romzip | grep tar.md5 | gawk '{ print $6 }' | grep ^CSC_)
+			echo "${bluet}Extracting tar.md5 files ...$normal"
+			$p7z e $romzip $mainmd5 $cscmd5 2>/dev/null >> $logs/zip.log
+			banner
+			echo "${bluet}Extracting images ...$normal"
+			if [[ ! $(tar -tf $mainmd5 | grep system.img.ext4) = "" ]]; then
+				tar -xf $mainmd5 system.img.ext4 boot.img 2>/dev/null >> $logs/zip.log
+				mv system.img.ext4 system.img
+			elif [[ ! $(tar -tf $mainmd5 | grep system.img) = "" ]]; then
+				tar -xf $mainmd5 system.img boot.img 2>/dev/null >> $logs/zip.log
+			fi
+			if [[ ! $(tar -tf $cscmd5 | grep cache.img.ext4) = "" ]]; then
+				tar -xf $cscmd5 cache.img.ext4 2>/dev/null >> $logs/zip.log
+				mv cache.img.ext4 cache.img
+			elif [[ ! $(tar -tf $cscmd5 | grep cache.img) = "" ]]; then
+				tar -xf $cscmd5 cache.img 2>/dev/null >> $logs/zip.log
+			fi
+			if [[ -f system.img ]]; then
+				rm -rf $mainmd5
+				rm -rf $cscmd5
 			else
 				banner
 				echo "$redb$yellowt${bold}ERROR:$normal"
